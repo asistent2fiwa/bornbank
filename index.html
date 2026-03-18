@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Børnebank</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:'Outfit',system-ui,sans-serif}
+</style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+<div class="max-w-md mx-auto p-4">
+<h1 class="text-3xl font-bold text-center mb-8">🐷 Børnebank</h1>
+
+<div id="setup" class="bg-gray-800 rounded-2xl p-6">
+<h2 class="text-xl font-semibold mb-4">Kom i gang</h2>
+<p class="text-gray-400 mb-4">Indsæt din Google Sheet URL:</p>
+<input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." 
+class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-4">
+<button onclick="loadSheet()" 
+class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg">
+Indlæs
+</button>
+
+<div class="mt-6 text-sm text-gray-400">
+<h3 class="font-semibold mb-2">Sådan opretter du Google Sheet:</h3>
+<ol class="list-decimal list-inside space-y-1">
+<li>Opret nyt regneark i Google Sheets</li>
+<li>Omdøb første ark til <code>Børn</code></li>
+<li>Tilføj kolonner: <code>Navn</code>, <code>Saldo</code></li>
+<li>Tilføj data, f.eks.: Anna, 50</li>
+<li>Gå til <strong>Fil → Del → Publikér til internettet</strong></li>
+<li>Vælg <strong>Hele dokumentet</strong> og <strong>CSV</strong></li>
+<li>Kopier linket og indsæt ovenfor!</li>
+</ol>
+</div>
+</div>
+
+<div id="dashboard" class="hidden">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-semibold">👶 Børn</h2>
+<button onclick="showSetup()" class="text-gray-400 text-sm">Skift Sheet</button>
+</div>
+
+<div id="children" class="space-y-4"></div>
+
+<div class="mt-8 bg-gray-800 rounded-2xl p-6">
+<h3 class="font-semibold mb-4">Ny transaktion</h3>
+<select id="childSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-3"></select>
+<input type="number" id="amount" placeholder="Beløb" 
+class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-3">
+<select id="type" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-3">
+<option value="Lommepenge">💰 Lommepenge</option>
+<option value="Bonus">⭐ Bonus</option>
+<option value="Fratræk">📉 Fratræk</option>
+</select>
+<button onclick="addTransaction()" 
+class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg">
+Tilføj
+</button>
+</div>
+
+<p class="text-center text-gray-500 text-sm mt-4">
+💡 Transaktioner tilføjes i Google Sheet
+</p>
+</div>
+</div>
+
+<script>
+let sheetUrl = '';
+let children = [];
+
+function showSetup() {
+document.getElementById('setup').classList.remove('hidden');
+document.getElementById('dashboard').classList.add('hidden');
+}
+
+function loadSheet() {
+sheetUrl = document.getElementById('sheetUrl').value;
+if(!sheetUrl) return alert('Indtast en URL!');
+
+// Convert to CSV export URL
+if(sheetUrl.includes('/edit')) {
+const id = sheetUrl.split('/d/')[1].split('/')[0];
+sheetUrl = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
+}
+
+fetch(sheetUrl)
+.then(r => r.text())
+.then(csv => {
+const lines = csv.trim().split('\n');
+const headers = lines[0].split(',');
+children = [];
+
+for(let i=1; i<lines.length; i++) {
+const vals = lines[i].split(',');
+if(vals.length >= 2) {
+children.push({navn: vals[0].trim(), saldo: parseInt(vals[1]) || 0});
+}
+}
+
+showDashboard();
+})
+.catch(e => alert('Fejl ved indlæsning: ' + e.message));
+}
+
+function showDashboard() {
+document.getElementById('setup').classList.add('hidden');
+document.getElementById('dashboard').classList.remove('hidden');
+
+const container = document.getElementById('children');
+container.innerHTML = '';
+
+const select = document.getElementById('childSelect');
+select.innerHTML = '';
+
+children.forEach((child, idx) => {
+container.innerHTML += `
+<div class="bg-gray-800 rounded-xl p-4 flex justify-between items-center">
+<span class="text-lg font-medium">${child.navn}</span>
+<span class="text-2xl font-bold text-green-400">${child.saldo} kr</span>
+</div>
+`;
+select.innerHTML += `<option value="${idx}">${child.navn}</option>`;
+});
+}
+
+function addTransaction() {
+const childIdx = document.getElementById('childSelect').value;
+const amount = parseInt(document.getElementById('amount').value);
+const type = document.getElementById('type').value;
+
+if(!amount) return alert('Indtast et beløb!');
+
+// Update local
+children[childIdx].saldo += amount;
+showDashboard();
+
+alert('✅ Transaktion tilføjet!\n\n💡 Gå til Google Sheet for at gemme permanent.');
+}
+</script>
+</body>
+</html>
