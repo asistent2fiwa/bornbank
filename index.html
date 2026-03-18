@@ -108,10 +108,17 @@ oninput="updateAllowanceLabel()" class="w-full bg-gray-700 rounded-lg px-4 py-3 
 <h3 class="font-semibold mb-3">Ny transaktion</h3>
 <p class="text-xs text-gray-500 mb-2">Kun tal og +/-</p>
 <input type="text" id="transAmount" placeholder="+/- kr." 
-oninput="this.value=this.value.replace(/[^0-9+-]/g,'')" 
+oninput="this.value=this.value.replace(/[^0-9+-]/g,''); checkTransType()" 
 class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-<input type="text" id="transDesc" placeholder="Beskrivelse (max 20 tegn)" 
-maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
+
+<label class="block text-sm text-gray-400 mb-1">Beskrivelse</label>
+<select id="transDescSelect" onchange="handleDescSelect()" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
+<option value="">Vælg...</option>
+</select>
+
+<input type="text" id="transDescCustom" placeholder="Beskrivelse (max 20 tegn)" 
+maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3 hidden">
+
 <button onclick="addTransaction()" class="w-full bg-green-500 text-black font-bold py-3 rounded-lg btn">Tilføj</button>
 </div>
 
@@ -147,11 +154,15 @@ maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 </div>
 
 <script>
+const POSITIVE_OPTS = ['Pligter', 'Gave', 'Ekstra'];
+const NEGATIVE_OPTS = ['Tøj', 'Underholdning', 'Andet'];
+
 let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
 let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":3}');
 let currentChild = null;
 let deleteTransIndex = null;
 let simOffset = 0;
+let currentTransType = 0;
 
 function getSimDate() {
 const d = new Date();
@@ -214,35 +225,41 @@ if(friday <= now) friday.setDate(friday.getDate() + 7);
 return friday;
 }
 
-// Get next interest payout date based on frequency
 function getNextInterestDate(freq) {
 const now = getSimDate();
-const d = new Date(now.getFullYear(), now.getMonth(), 0); // Last day of current month
-d.setHours(12,0,0,0);
+let month = now.getMonth();
+let year = now.getFullYear();
+let day = 0;
 
-if(d <= now) {
-d.setMonth(d.getMonth() + 1);
-}
-
-if(freq === 1) { // Monthly - last day of each month
-while(d <= now) {
-d.setMonth(d.getMonth() + 1);
-d.setDate(0); // Last day of month
-}
+if(freq === 1) { // Monthly - last day of month
+const nextMonth = new Date(year, month + 2, 0);
+day = nextMonth.getDate();
 } else if(freq === 3) { // Quarterly - Mar, Jun, Sep, Dec
-const quarters = [2, 5, 8, 11]; // Mar, Jun, Sep, Dec (0-indexed)
-while(d <= now || !quarters.includes(d.getMonth())) {
-d.setMonth(d.getMonth() + 1);
-d.setDate(0);
+const quarters = [2, 5, 8, 11];
+if(!quarters.includes(month)) {
+month = quarters.find(q => q > month) || quarters[0];
+if(month <= now.getMonth()) year++;
 }
-if(!quarters.includes(d.getMonth())) {
-d.setMonth(quarters.find(q => q > d.getMonth()) || quarters[0] + 12);
-d.setDate(0);
-}
+const nextQuarter = new Date(year, month + 1, 0);
+day = nextQuarter.getDate();
 } else if(freq === 12) { // Yearly - December
-while(d <= now || d.getMonth() !== 11) {
+month = 11;
+const nextYear = new Date(year + 1, 0, 0);
+day = nextYear.getDate();
+}
+
+const d = new Date(year, month, day, 12, 0, 0);
+if(d <= now) {
+if(freq === 1) {
 d.setMonth(d.getMonth() + 1);
-d.setDate(0);
+const m = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+d.setDate(m.getDate());
+} else if(freq === 3) {
+d.setMonth(d.getMonth() + 3);
+const m = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+d.setDate(m.getDate());
+} else {
+d.setFullYear(d.getFullYear() + 1);
 }
 }
 return d;
@@ -284,33 +301,19 @@ c.lastProcessed = getSimDate().toISOString();
 
 function processInterest() {
 if(!interest.enabled) return;
-children.forEach(c => {
-if(!c.interestRate) c.interestRate = interest.rate;
-if(!c.interestFreq) c.interestFreq = interest.freq;
-
-const nextPayout = new Date(c.lastInterestPayout || getSimDate().toISOString());
-const nextDate = getNextInterestDate(c.interestFreq || interest.freq);
-
-// If frequency changed, use next payout date based on new freq from now
-if((c.interestFreq || interest.freq) !== interest.freq) {
-c.interestFreq = interest.freq;
-c.nextInterestPayout = getNextInterestDate(interest.freq).toISOString();
-}
-
-// If rate changed, it takes effect from next payout
-if(c.interestRate !== interest.rate) {
-c.interestRate = interest.rate;
-}
-
 const now = getSimDate();
-if(nextDate <= now) {
-const months = (now.getFullYear() - nextPayout.getFullYear()) * 12 + now.getMonth() - nextPayout.getMonth();
-if(months >= 1) {
+
+children.forEach(c => {
 const rate = c.interestRate || interest.rate;
 const freq = c.interestFreq || interest.freq;
-const periods = Math.floor(months / (12 / freq));
-if(periods > 0) {
-const interestAmount = Math.round(c.saldo * (rate / 100) * (periods * (freq / 12)));
+const lastPayout = c.lastInterestPayout ? new Date(c.lastInterestPayout) : new Date(c.created || now.toISOString());
+const nextPayout = getNextInterestDate(freq);
+
+if(nextPayout <= now) {
+const months = (now.getFullYear() - lastPayout.getFullYear()) * 12 + now.getMonth() - lastPayout.getMonth();
+if(months >= (12/freq)) {
+const periods = Math.floor(months / (12/freq));
+const interestAmount = Math.round(c.saldo * (rate/100) * (periods * (freq/12)));
 if(interestAmount > 0) {
 c.saldo += interestAmount;
 c.transactions.unshift({
@@ -320,9 +323,9 @@ desc: `Rente (${periods} gang${periods > 1 ? 'e' : ''})`
 });
 }
 }
-}
-c.lastInterestPayout = nextDate.toISOString();
-c.nextInterestPayout = getNextInterestDate(c.interestFreq || interest.freq).toISOString();
+c.lastInterestPayout = nextPayout.toISOString();
+c.interestRate = rate;
+c.interestFreq = freq;
 }
 });
 }
@@ -386,10 +389,10 @@ saldo: 0,
 transactions: [], 
 nextPay: getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'}),
 lastProcessed: getSimDate().toISOString(),
+created: getSimDate().toISOString(),
 interestRate: interest.rate,
 interestFreq: interest.freq,
-lastInterestPayout: getSimDate().toISOString(),
-nextInterestPayout: getNextInterestDate(interest.freq).toISOString()
+lastInterestPayout: getSimDate().toISOString()
 });
 save();
 hideAddChild();
@@ -402,22 +405,57 @@ currentChild = null;
 render();
 }
 
-function openChild(i) {
-currentChild = i;
-const c = children[i];
-document.getElementById('home').classList.add('hidden');
-document.getElementById('childDetail').classList.remove('hidden');
-document.getElementById('detailName').textContent = c.name;
-document.getElementById('detailAge').textContent = c.age + ' år';
-document.getElementById('detailSaldo').textContent = fmt(c.saldo);
-document.getElementById('nextFriday').textContent = c.nextPay;
-document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
-renderTrans();
+function checkTransType() {
+const amount = document.getElementById('transAmount').value.trim();
+if(amount.startsWith('-')) {
+currentTransType = -1;
+} else {
+currentTransType = 1;
+}
+updateDescSelect();
+}
+
+function updateDescSelect() {
+const select = document.getElementById('transDescSelect');
+const custom = document.getElementById('transDescCustom');
+const opts = currentTransType === -1 ? NEGATIVE_OPTS : POSITIVE_OPTS;
+
+select.innerHTML = '<option value="">Vælg...</option>';
+opts.forEach(o => {
+select.innerHTML += `<option value="${o}">${o}</option>`;
+});
+select.innerHTML += '<option value="__custom__">Andet...</option>';
+
+if(select.value === '__custom__') {
+custom.classList.remove('hidden');
+} else {
+custom.classList.add('hidden');
+}
+}
+
+function handleDescSelect() {
+const select = document.getElementById('transDescSelect');
+const custom = document.getElementById('transDescCustom');
+if(select.value === '__custom__') {
+custom.classList.remove('hidden');
+custom.focus();
+} else {
+custom.classList.add('hidden');
+}
 }
 
 function addTransaction() {
 const amountStr = document.getElementById('transAmount').value.trim();
-const desc = document.getElementById('transDesc').value.trim().substring(0,20);
+const select = document.getElementById('transDescSelect');
+const custom = document.getElementById('transDescCustom');
+let desc = '';
+
+if(select.value && select.value !== '__custom__') {
+desc = select.value;
+} else if(custom.value.trim()) {
+desc = custom.value.trim().substring(0,20);
+}
+
 if(!amountStr) return alert('Indtast et beløb!');
 
 const amount = Math.round(parseFloat(amountStr));
@@ -434,7 +472,9 @@ save();
 
 document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
 document.getElementById('transAmount').value = '';
-document.getElementById('transDesc').value = '';
+select.value = '';
+custom.value = '';
+currentTransType = 0;
 renderTrans();
 }
 
@@ -468,6 +508,20 @@ document.getElementById('allowanceAmount').textContent = fmt(children[currentChi
 children[currentChild].nextPay = getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'});
 document.getElementById('nextFriday').textContent = children[currentChild].nextPay;
 save();
+}
+
+function openChild(i) {
+currentChild = i;
+const c = children[i];
+document.getElementById('home').classList.add('hidden');
+document.getElementById('childDetail').classList.remove('hidden');
+document.getElementById('detailName').textContent = c.name;
+document.getElementById('detailAge').textContent = c.age + ' år';
+document.getElementById('detailSaldo').textContent = fmt(c.saldo);
+document.getElementById('nextFriday').textContent = c.nextPay;
+document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
+renderTrans();
+updateDescSelect();
 }
 
 function confirmDelete() {
