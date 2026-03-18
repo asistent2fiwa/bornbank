@@ -6,369 +6,139 @@
 <title>Børnebank</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
-*{font-family:'Outfit',system-ui,sans-serif}
-body{background:#0f0f14;color:#fff;min-height:100vh}
-.btn{transition:all 0.15s}
-.btn:active{transform:scale(0.96)}
-.trans-desc{max-width:120px;word-wrap:break-word;white-space:normal}
+body{font-family:'Outfit',system-ui,sans-serif}
 </style>
 </head>
-<body class="p-4">
+<body class="bg-gray-900 text-white min-h-screen">
+<div class="max-w-md mx-auto p-4">
+<h1 class="text-3xl font-bold text-center mb-8">🐷 Børnebank</h1>
 
-<div id="home">
-<div class="flex justify-between items-center mb-4">
-<h1 class="text-2xl font-bold">🐷 Børnebank</h1>
+<div id="setup" class="bg-gray-800 rounded-2xl p-6">
+<h2 class="text-xl font-semibold mb-4">Kom i gang</h2>
+<p class="text-gray-400 mb-4">Indsæt din Google Sheet URL:</p>
+<input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." 
+class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-4">
+<button onclick="loadSheet()" 
+class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg">
+Indlæs
+</button>
+
+<div class="mt-6 text-sm text-gray-400">
+<h3 class="font-semibold mb-2">Sådan opretter du Google Sheet:</h3>
+<ol class="list-decimal list-inside space-y-1">
+<li>Opret nyt regneark i Google Sheets</li>
+<li>Omdøb første ark til <code>Børn</code></li>
+<li>Tilføj kolonner: <code>Navn</code>, <code>Saldo</code></li>
+<li>Tilføj data, f.eks.: Anna, 50</li>
+<li>Gå til <strong>Fil → Del → Publikér til internettet</strong></li>
+<li>Vælg <strong>Hele dokumentet</strong> og <strong>CSV</strong></li>
+<li>Kopier linket og indsæt ovenfor!</li>
+</ol>
+</div>
 </div>
 
-<!-- Renter settings -->
-<div class="bg-gray-800 rounded-xl p-4 mb-4">
-<div class="flex justify-between items-center mb-3">
-<span class="font-semibold">💰 Renter</span>
-<button onclick="toggleInterest()" id="interestToggle" class="text-green-400 text-sm">SLÅET TIL</button>
+<div id="dashboard" class="hidden">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-semibold">👶 Børn</h2>
+<button onclick="showSetup()" class="text-gray-400 text-sm">Skift Sheet</button>
 </div>
-<div id="interestSettings" class="flex gap-2 items-center">
-<input type="number" id="interestRate" value="2" min="0" max="100" step="0.5" 
-class="bg-gray-700 rounded-lg px-3 py-2 w-20 text-center">
-<span class="text-sm text-gray-400">% pr.</span>
-<select id="interestFreq" class="bg-gray-700 rounded-lg px-3 py-2">
-<option value="12">Måned</option>
-<option value="4" selected>Kvartal</option>
-<option value="1">År</option>
+
+<div id="children" class="space-y-4"></div>
+
+<div class="mt-8 bg-gray-800 rounded-2xl p-6">
+<h3 class="font-semibold mb-4">Ny transaktion</h3>
+<select id="childSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-3"></select>
+<input type="number" id="amount" placeholder="Beløb" 
+class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-3">
+<select id="type" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 mb-3">
+<option value="Lommepenge">💰 Lommepenge</option>
+<option value="Bonus">⭐ Bonus</option>
+<option value="Fratræk">📉 Fratræk</option>
 </select>
-</div>
-</div>
-
-<div id="childrenList" class="space-y-3 mb-6"></div>
-
-<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn">
-+ Tilføj barn
+<button onclick="addTransaction()" 
+class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg">
+Tilføj
 </button>
 </div>
 
-<!-- Add Child Modal -->
-<div id="addChild" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
-<h2 class="text-xl font-bold mb-4">Nyt barn</h2>
-
-<label class="block text-sm text-gray-400 mb-1">Navn</label>
-<input type="text" id="childName" placeholder="Navn" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-4">
-
-<label class="block text-sm text-gray-400 mb-1">Fødselsdato</label>
-<input type="date" id="childBirth" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-4">
-
-<label class="block text-sm text-gray-400 mb-1">Lommepenge (kr.)</label>
-<input type="number" id="childAllowance" placeholder="0" min="0" step="1"
-oninput="updateAllowanceLabel()" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-4">
-<span id="allowanceLabel" class="text-sm text-gray-500 -mt-3 block mb-4"></span>
-
-<div class="flex gap-3">
-<button onclick="hideAddChild()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Annuller</button>
-<button onclick="saveChild()" class="flex-1 bg-green-500 text-black font-bold py-3 rounded-lg btn">Gem</button>
-</div>
-</div>
-</div>
-
-<!-- Child Detail -->
-<div id="childDetail" class="hidden">
-<button onclick="showHome()" class="text-gray-400 mb-4 btn">← Tilbage</button>
-
-<div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<h2 id="detailName" class="text-2xl font-bold mb-2"></h2>
-<p id="detailAge" class="text-gray-400 mb-2"></p>
-<p class="text-4xl font-bold text-green-400 mb-2"><span id="detailSaldo">0</span> kr</p>
-<p class="text-sm text-gray-500">Næste lommepenge: <span id="nextFriday"></span></p>
-</div>
-
-<div class="bg-gray-800 rounded-2xl p-4 mb-4">
-<h3 class="font-semibold mb-3">Lommepenge/uge</h3>
-<div class="flex items-center justify-between">
-<button onclick="changeAllowance(-1)" class="bg-red-500 text-white w-10 h-10 rounded-full text-xl font-bold">-</button>
-<span id="allowanceAmount" class="text-2xl font-bold">0 kr</span>
-<button onclick="changeAllowance(1)" class="bg-green-500 text-black w-10 h-10 rounded-full text-xl font-bold">+</button>
-</div>
-<p class="text-xs text-gray-500 mt-2">Ændringer gælder fra næste fredag kl. 15</p>
-</div>
-
-<div class="bg-gray-800 rounded-2xl p-4 mb-4">
-<h3 class="font-semibold mb-3">Ny transaktion</h3>
-<p class="text-xs text-gray-500 mb-2">Kun tal og +/-</p>
-<input type="text" id="transAmount" placeholder="+/- kr." 
-oninput="this.value=this.value.replace(/[^0-9+-]/g,''); updateDescOptions();" 
-class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-
-<label class="block text-sm text-gray-400 mb-1">Beskrivelse</label>
-<select id="transDesc" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-<option value="">Vælg...</option>
-</select>
-
-<button onclick="addTransaction()" class="w-full bg-green-500 text-black font-bold py-3 rounded-lg btn">Tilføj</button>
-</div>
-
-<h3 class="font-semibold mb-3">Transaktioner</h3>
-<div id="transList" class="space-y-2 mb-4"></div>
-
-<button onclick="confirmDelete()" class="w-full bg-red-600 font-bold py-3 rounded-lg mt-8 btn">Slet barn</button>
-</div>
-
-<!-- Delete Confirm -->
-<div id="deleteConfirm" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
-<h2 class="text-xl font-bold mb-4">Slet <span id="deleteName"></span>?</h2>
-<p class="text-gray-400 mb-6">Dette kan ikke fortrydes!</p>
-<div class="flex gap-3">
-<button onclick="hideDeleteConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
-<button onclick="deleteChild()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
-</div>
-</div>
-</div>
-
-<!-- Delete Trans Confirm -->
-<div id="deleteTransConfirm" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
-<h2 class="text-xl font-bold mb-4">Slet transaktion?</h2>
-<p class="text-gray-400 mb-6">Beløb: <span id="deleteTransAmount"></span></p>
-<div class="flex gap-3">
-<button onclick="hideDeleteTransConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
-<button onclick="deleteTransaction()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
-</div>
+<p class="text-center text-gray-500 text-sm mt-4">
+💡 Transaktioner tilføjes i Google Sheet
+</p>
 </div>
 </div>
 
 <script>
-let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
-let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":4}');
-let currentChild = null;
-let currentTransType = 0;
+let sheetUrl = '';
+let children = [];
 
-const POS_OPTS = ['Pligter', 'Gave', 'Andet'];
-const NEG_OPTS = ['Tøj', 'Underholdning', 'Andet'];
-
-function updateDescOptions() {
-const amt = document.getElementById('transAmount').value.trim();
-const sel = document.getElementById('transDesc');
-const isNeg = amt.startsWith('-');
-currentTransType = isNeg ? -1 : 1;
-const opts = isNeg ? NEG_OPTS : POS_OPTS;
-sel.innerHTML = '<option value="">Vælg...</option>';
-opts.forEach(o => { sel.innerHTML += '<option value="'+o+'">'+o+'</option>'; });
-}
-return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+function showSetup() {
+document.getElementById('setup').classList.remove('hidden');
+document.getElementById('dashboard').classList.add('hidden');
 }
 
-function save() {
-localStorage.setItem('bornbank', JSON.stringify(children));
-localStorage.setItem('bornbank_interest', JSON.stringify(interest));
-render();
+function loadSheet() {
+sheetUrl = document.getElementById('sheetUrl').value;
+if(!sheetUrl) return alert('Indtast en URL!');
+
+// Convert to CSV export URL
+if(sheetUrl.includes('/edit')) {
+const id = sheetUrl.split('/d/')[1].split('/')[0];
+sheetUrl = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
 }
 
-function render() {
-const list = document.getElementById('childrenList');
-list.innerHTML = '';
-children.forEach((c, i) => {
-list.innerHTML += `
-<div onclick="openChild(${i})" class="bg-gray-800 rounded-xl p-4 flex justify-between items-center btn">
-<div>
-<div class="font-bold text-lg">${c.name}</div>
-<div class="text-sm text-gray-400">${c.age} år • ${fmt(c.allowance)} kr/uge</div>
-</div>
-<div class="text-2xl font-bold ${c.saldo >= 0 ? 'text-green-400' : 'text-red-400'}">${fmt(c.saldo)} kr</div>
+fetch(sheetUrl)
+.then(r => r.text())
+.then(csv => {
+const lines = csv.trim().split('\n');
+const headers = lines[0].split(',');
+children = [];
+
+for(let i=1; i<lines.length; i++) {
+const vals = lines[i].split(',');
+if(vals.length >= 2) {
+children.push({navn: vals[0].trim(), saldo: parseInt(vals[1]) || 0});
+}
+}
+
+showDashboard();
+})
+.catch(e => alert('Fejl ved indlæsning: ' + e.message));
+}
+
+function showDashboard() {
+document.getElementById('setup').classList.add('hidden');
+document.getElementById('dashboard').classList.remove('hidden');
+
+const container = document.getElementById('children');
+container.innerHTML = '';
+
+const select = document.getElementById('childSelect');
+select.innerHTML = '';
+
+children.forEach((child, idx) => {
+container.innerHTML += `
+<div class="bg-gray-800 rounded-xl p-4 flex justify-between items-center">
+<span class="text-lg font-medium">${child.navn}</span>
+<span class="text-2xl font-bold text-green-400">${child.saldo} kr</span>
 </div>
 `;
+select.innerHTML += `<option value="${idx}">${child.navn}</option>`;
 });
-
-document.getElementById('interestRate').value = interest.rate;
-document.getElementById('interestFreq').value = interest.freq;
-document.getElementById('interestToggle').textContent = interest.enabled ? 'SLÅET TIL' : 'SLÅET FRA';
-document.getElementById('interestToggle').className = interest.enabled ? 'text-green-400 text-sm' : 'text-gray-500 text-sm';
-document.getElementById('interestSettings').style.display = interest.enabled ? 'flex' : 'none';
-}
-
-function getAge(birthDate) {
-const today = new Date();
-const birth = new Date(birthDate);
-let age = today.getFullYear() - birth.getFullYear();
-const m = today.getMonth() - birth.getMonth();
-if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-age--;
-}
-return age;
-}
-
-function getNextFriday() {
-const now = new Date();
-const friday = new Date(now);
-friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
-friday.setHours(15,0,0,0);
-if(friday <= now) friday.setDate(friday.getDate() + 7);
-return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-}
-
-function toggleInterest() {
-interest.enabled = !interest.enabled;
-save();
-}
-
-function showAddChild() { document.getElementById('addChild').classList.remove('hidden'); }
-function hideAddChild() { 
-document.getElementById('addChild').classList.add('hidden');
-document.getElementById('childName').value = '';
-document.getElementById('childBirth').value = '';
-document.getElementById('childAllowance').value = '';
-document.getElementById('allowanceLabel').textContent = '';
-}
-
-function updateAllowanceLabel() {
-const v = document.getElementById('childAllowance').value;
-document.getElementById('allowanceLabel').textContent = v ? v + ' kr.' : '';
-}
-
-function saveChild() {
-const name = document.getElementById('childName').value.trim();
-const birth = document.getElementById('childBirth').value;
-let allowance = parseInt(document.getElementById('childAllowance').value) || 0;
-if(!name) return alert('Indtast et navn!');
-if(!birth) return alert('Vælg en fødselsdato!');
-if(allowance < 0) allowance = 0;
-
-children.push({
-name, 
-birth, 
-age: getAge(birth), 
-allowance, 
-saldo: 0, 
-transactions: [], 
-nextPay: getNextFriday()
-});
-save();
-hideAddChild();
-}
-
-function showHome() {
-document.getElementById('home').classList.remove('hidden');
-document.getElementById('childDetail').classList.add('hidden');
-currentChild = null;
-render();
-}
-
-function openChild(i) {
-currentChild = i;
-const c = children[i];
-document.getElementById('home').classList.add('hidden');
-document.getElementById('childDetail').classList.remove('hidden');
-document.getElementById('detailName').textContent = c.name;
-document.getElementById('detailAge').textContent = c.age + ' år';
-document.getElementById('detailSaldo').textContent = fmt(c.saldo);
-document.getElementById('nextFriday').textContent = c.nextPay;
-document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
-updateDescOptions();
-renderTrans();
 }
 
 function addTransaction() {
-const amountStr = document.getElementById('transAmount').value.trim();
-const desc = document.getElementById('transDesc').value;
-if(!amountStr) return alert('Indtast et beløb!');
+const childIdx = document.getElementById('childSelect').value;
+const amount = parseInt(document.getElementById('amount').value);
+const type = document.getElementById('type').value;
 
-const amount = Math.round(parseFloat(amountStr));
-if(isNaN(amount)) return alert('Ugyldigt beløb!');
+if(!amount) return alert('Indtast et beløb!');
 
-children[currentChild].saldo += amount;
-children[currentChild].transactions.unshift({
-date: new Date().toISOString(),
-amount: amount,
-desc: desc || 'Transaktion'
-});
-children[currentChild].nextPay = getNextFriday();
-save();
+// Update local
+children[childIdx].saldo += amount;
+showDashboard();
 
-document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
-document.getElementById('transAmount').value = '';
-document.getElementById('transDesc').value = '';
-renderTrans();
+alert('✅ Transaktion tilføjet!\n\n💡 Gå til Google Sheet for at gemme permanent.');
 }
-
-function renderTrans() {
-const c = children[currentChild];
-const list = document.getElementById('transList');
-list.innerHTML = '';
-c.transactions.forEach((t, idx) => {
-const isNeg = t.amount < 0;
-const desc = t.desc || 'Transaktion';
-list.innerHTML += `
-<div class="bg-gray-700 rounded-lg p-3 flex justify-between items-center gap-2">
-<div class="flex items-center gap-2 flex-1 min-w-0">
-<span class="font-semibold ${isNeg ? 'text-red-400' : 'text-green-400'} text-lg whitespace-nowrap">${isNeg ? '' : '+'}${fmt(t.amount)} kr</span>
-<span class="text-gray-300 text-sm trans-desc">${desc}</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="text-xs text-gray-500">${new Date(t.date).toLocaleDateString('da-DK')}</span>
-<button onclick="confirmDeleteTrans(${idx})" class="text-red-400 text-xs px-2 py-1">✕</button>
-</div>
-</div>
-`;
-});
-}
-
-function changeAllowance(delta) {
-children[currentChild].allowance += delta;
-if(children[currentChild].allowance < 0) children[currentChild].allowance = 0;
-document.getElementById('allowanceAmount').textContent = fmt(children[currentChild].allowance) + ' kr';
-children[currentChild].nextPay = getNextFriday();
-document.getElementById('nextFriday').textContent = children[currentChild].nextPay;
-save();
-}
-
-function confirmDelete() {
-document.getElementById('deleteName').textContent = children[currentChild].name;
-document.getElementById('deleteConfirm').classList.remove('hidden');
-}
-
-function hideDeleteConfirm() {
-document.getElementById('deleteConfirm').classList.add('hidden');
-}
-
-function deleteChild() {
-children.splice(currentChild, 1);
-save();
-hideDeleteConfirm();
-showHome();
-}
-
-function confirmDeleteTrans(idx) {
-deleteTransIndex = idx;
-const t = children[currentChild].transactions[idx];
-document.getElementById('deleteTransAmount').textContent = (t.amount > 0 ? '+' : '') + fmt(t.amount) + ' kr';
-document.getElementById('deleteTransConfirm').classList.remove('hidden');
-}
-
-function hideDeleteTransConfirm() {
-document.getElementById('deleteTransConfirm').classList.add('hidden');
-deleteTransIndex = null;
-}
-
-function deleteTransaction() {
-if(deleteTransIndex !== null) {
-children[currentChild].saldo -= children[currentChild].transactions[deleteTransIndex].amount;
-children[currentChild].transactions.splice(deleteTransIndex, 1);
-save();
-document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
-renderTrans();
-}
-hideDeleteTransConfirm();
-}
-
-// Interest rate listener
-document.getElementById('interestRate').addEventListener('change', function() {
-interest.rate = parseFloat(this.value) || 0;
-save();
-});
-document.getElementById('interestFreq').addEventListener('change', function() {
-interest.freq = parseInt(this.value);
-save();
-});
-
-render();
 </script>
 </body>
 </html>
