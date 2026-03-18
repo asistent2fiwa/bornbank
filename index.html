@@ -41,9 +41,9 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 class="bg-gray-700 rounded-lg px-3 py-2 w-20 text-center" onchange="updateInterest()">
 <span class="text-sm text-gray-400">% pr.</span>
 <select id="interestFreq" class="bg-gray-700 rounded-lg px-3 py-2" onchange="updateInterest()">
-<option value="12">Måned</option>
-<option value="4" selected>Kvartal</option>
-<option value="1">År</option>
+<option value="1">Måned</option>
+<option value="3" selected>Kvartal</option>
+<option value="12">År</option>
 </select>
 </div>
 </div>
@@ -148,7 +148,7 @@ maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 
 <script>
 let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
-let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":4}');
+let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":3}');
 let currentChild = null;
 let deleteTransIndex = null;
 let simOffset = 0;
@@ -214,6 +214,40 @@ if(friday <= now) friday.setDate(friday.getDate() + 7);
 return friday;
 }
 
+// Get next interest payout date based on frequency
+function getNextInterestDate(freq) {
+const now = getSimDate();
+const d = new Date(now.getFullYear(), now.getMonth(), 0); // Last day of current month
+d.setHours(12,0,0,0);
+
+if(d <= now) {
+d.setMonth(d.getMonth() + 1);
+}
+
+if(freq === 1) { // Monthly - last day of each month
+while(d <= now) {
+d.setMonth(d.getMonth() + 1);
+d.setDate(0); // Last day of month
+}
+} else if(freq === 3) { // Quarterly - Mar, Jun, Sep, Dec
+const quarters = [2, 5, 8, 11]; // Mar, Jun, Sep, Dec (0-indexed)
+while(d <= now || !quarters.includes(d.getMonth())) {
+d.setMonth(d.getMonth() + 1);
+d.setDate(0);
+}
+if(!quarters.includes(d.getMonth())) {
+d.setMonth(quarters.find(q => q > d.getMonth()) || quarters[0] + 12);
+d.setDate(0);
+}
+} else if(freq === 12) { // Yearly - December
+while(d <= now || d.getMonth() !== 11) {
+d.setMonth(d.getMonth() + 1);
+d.setDate(0);
+}
+}
+return d;
+}
+
 function countFridaysSince(lastDate) {
 const now = getSimDate();
 const last = new Date(lastDate);
@@ -231,7 +265,6 @@ return count;
 }
 
 function processScheduledPayments() {
-const now = getSimDate();
 children.forEach(c => {
 if(c.lastProcessed) {
 const fridaysPassed = countFridaysSince(c.lastProcessed);
@@ -239,37 +272,58 @@ if(fridaysPassed > 0) {
 const amount = fridaysPassed * c.allowance;
 c.saldo += amount;
 c.transactions.unshift({
-date: now.toISOString(),
+date: getSimDate().toISOString(),
 amount: amount,
 desc: `Lommepenge (${fridaysPassed} gang${fridaysPassed > 1 ? 'e' : ''})`
 });
 }
 }
-c.lastProcessed = now.toISOString();
+c.lastProcessed = getSimDate().toISOString();
 });
 }
 
 function processInterest() {
 if(!interest.enabled) return;
-const now = getSimDate();
 children.forEach(c => {
-if(c.lastInterest) {
-const last = new Date(c.lastInterest);
-const months = (now.getFullYear() - last.getFullYear()) * 12 + now.getMonth() - last.getMonth();
-if(months >= (12 / interest.freq)) {
-const monthsToApply = Math.floor(months / (12 / interest.freq));
-const interestAmount = Math.round(c.saldo * (interest.rate / 100) * (monthsToApply * (interest.freq / 12)));
+if(!c.interestRate) c.interestRate = interest.rate;
+if(!c.interestFreq) c.interestFreq = interest.freq;
+
+const nextPayout = new Date(c.lastInterestPayout || getSimDate().toISOString());
+const nextDate = getNextInterestDate(c.interestFreq || interest.freq);
+
+// If frequency changed, use next payout date based on new freq from now
+if((c.interestFreq || interest.freq) !== interest.freq) {
+c.interestFreq = interest.freq;
+c.nextInterestPayout = getNextInterestDate(interest.freq).toISOString();
+}
+
+// If rate changed, it takes effect from next payout
+if(c.interestRate !== interest.rate) {
+c.interestRate = interest.rate;
+}
+
+const now = getSimDate();
+if(nextDate <= now) {
+const months = (now.getFullYear() - nextPayout.getFullYear()) * 12 + now.getMonth() - nextPayout.getMonth();
+if(months >= 1) {
+const rate = c.interestRate || interest.rate;
+const freq = c.interestFreq || interest.freq;
+const periods = Math.floor(months / (12 / freq));
+if(periods > 0) {
+const interestAmount = Math.round(c.saldo * (rate / 100) * (periods * (freq / 12)));
 if(interestAmount > 0) {
 c.saldo += interestAmount;
 c.transactions.unshift({
 date: now.toISOString(),
 amount: interestAmount,
-desc: `Rente (${monthsToApply} gang${monthsToApply > 1 ? 'e' : ''})`
+desc: `Rente (${periods} gang${periods > 1 ? 'e' : ''})`
 });
 }
 }
 }
-c.lastInterest = now.toISOString();
+c.lastInterestPayout = nextDate.toISOString();
+c.nextInterestPayout = getNextInterestDate(c.interestFreq || interest.freq).toISOString();
+}
 });
 }
 
@@ -332,7 +386,10 @@ saldo: 0,
 transactions: [], 
 nextPay: getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'}),
 lastProcessed: getSimDate().toISOString(),
-lastInterest: getSimDate().toISOString()
+interestRate: interest.rate,
+interestFreq: interest.freq,
+lastInterestPayout: getSimDate().toISOString(),
+nextInterestPayout: getNextInterestDate(interest.freq).toISOString()
 });
 save();
 hideAddChild();
@@ -406,7 +463,7 @@ list.innerHTML += `
 
 function changeAllowance(delta) {
 children[currentChild].allowance += delta;
-if(children[currentChild].allowage < 0) children[currentChild].allowance = 0;
+if(children[currentChild].allowance < 0) children[currentChild].allowance = 0;
 document.getElementById('allowanceAmount').textContent = fmt(children[currentChild].allowance) + ' kr';
 children[currentChild].nextPay = getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'});
 document.getElementById('nextFriday').textContent = children[currentChild].nextPay;
