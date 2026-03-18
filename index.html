@@ -23,9 +23,26 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <div id="childrenList" class="space-y-3 mb-6"></div>
 
-<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn">
+<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn mb-4">
 + Tilføj barn
 </button>
+
+<!-- Renter settings -->
+<div class="bg-gray-800 rounded-xl p-4">
+<div class="flex justify-between items-center mb-3">
+<span class="font-semibold">💰 Renter</span>
+<button onclick="toggleInterest()" id="interestToggle" class="text-green-400 text-sm">SLÅET TIL</button>
+</div>
+<div id="interestSettings" class="flex gap-2 items-center">
+<input type="number" id="interestRate" value="2" min="0" max="100" step="0.1" class="bg-gray-700 rounded-lg px-3 py-2 w-20 text-center" onchange="updateInterest()">
+<span class="text-sm text-gray-400">% pr.</span>
+<select id="interestFreq" class="bg-gray-700 rounded-lg px-3 py-2" onchange="updateInterest()">
+<option value="1">Måned</option>
+<option value="3" selected>Kvartal</option>
+<option value="12">År</option>
+</select>
+</div>
+</div>
 </div>
 
 <!-- Add Child Modal -->
@@ -94,8 +111,13 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <script>
 let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
+let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":3}');
 let currentChild = null;
 let transType = 1;
+
+function fmt(n) {
+return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
 function save() {
 localStorage.setItem('bornbank', JSON.stringify(children));
@@ -110,12 +132,17 @@ list.innerHTML += `
 <div onclick="openChild(${i})" class="bg-gray-800 rounded-xl p-4 flex justify-between items-center btn">
 <div>
 <div class="font-bold text-lg">${c.name}</div>
-<div class="text-sm text-gray-400">${c.age} år • ${c.allowance} kr/uge</div>
+<div class="text-sm text-gray-400">${c.age} år • ${fmt(c.allowance)} kr/uge</div>
 </div>
-<div class="text-2xl font-bold ${c.saldo >= 0 ? 'text-green-400' : 'text-red-400'}">${c.saldo} kr</div>
+<div class="text-2xl font-bold ${c.saldo >= 0 ? 'text-green-400' : 'text-red-400'}">${fmt(c.saldo)} kr</div>
 </div>
 `;
 });
+document.getElementById('interestRate').value = interest.rate;
+document.getElementById('interestFreq').value = interest.freq;
+document.getElementById('interestToggle').textContent = interest.enabled ? 'SLÅET TIL' : 'SLÅET FRA';
+document.getElementById('interestToggle').className = interest.enabled ? 'text-green-400 text-sm' : 'text-gray-500 text-sm';
+document.getElementById('interestSettings').style.display = interest.enabled ? 'flex' : 'none';
 }
 
 function getNextFriday() {
@@ -125,6 +152,17 @@ friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
 friday.setHours(15,0,0,0);
 if(friday <= now) friday.setDate(friday.getDate() + 7);
 return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+}
+
+function toggleInterest() {
+interest.enabled = !interest.enabled;
+save();
+}
+
+function updateInterest() {
+interest.rate = parseFloat(document.getElementById('interestRate').value) || 0;
+interest.freq = parseInt(document.getElementById('interestFreq').value);
+save();
 }
 
 function showAddChild() { document.getElementById('addChild').classList.remove('hidden'); }
