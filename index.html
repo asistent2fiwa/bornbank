@@ -11,10 +11,7 @@
 body{background:#0f0f14;color:#fff;min-height:100vh}
 .btn{transition:all 0.15s}
 .btn:active{transform:scale(0.96)}
-.trans-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:nowrap}
-.trans-amount{white-space:nowrap}
-.trans-desc{max-width:50%;word-wrap:break-word;white-space:normal}
-.trans-date{white-space:nowrap}
+.trans-desc{max-width:120px;word-wrap:break-word;white-space:normal}
 </style>
 </head>
 <body class="p-4">
@@ -24,29 +21,29 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <h1 class="text-2xl font-bold">🐷 Børnebank</h1>
 </div>
 
-<div id="childrenList" class="space-y-3 mb-4"></div>
-
-<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn mb-4">
-+ Tilføj barn
-</button>
-
 <!-- Renter settings -->
-<div class="bg-gray-800 rounded-xl p-4">
+<div class="bg-gray-800 rounded-xl p-4 mb-4">
 <div class="flex justify-between items-center mb-3">
 <span class="font-semibold">💰 Renter</span>
 <button onclick="toggleInterest()" id="interestToggle" class="text-green-400 text-sm">SLÅET TIL</button>
 </div>
 <div id="interestSettings" class="flex gap-2 items-center">
-<input type="number" id="interestRate" value="2" min="0" max="100" step="0.1" 
-class="bg-gray-700 rounded-lg px-3 py-2 w-20 text-center" onchange="updateInterest()">
+<input type="number" id="interestRate" value="2" min="0" max="100" step="0.5" 
+class="bg-gray-700 rounded-lg px-3 py-2 w-20 text-center">
 <span class="text-sm text-gray-400">% pr.</span>
-<select id="interestFreq" class="bg-gray-700 rounded-lg px-3 py-2" onchange="updateInterest()">
-<option value="1">Måned</option>
-<option value="3" selected>Kvartal</option>
-<option value="12">År</option>
+<select id="interestFreq" class="bg-gray-700 rounded-lg px-3 py-2">
+<option value="12">Måned</option>
+<option value="4" selected>Kvartal</option>
+<option value="1">År</option>
 </select>
 </div>
 </div>
+
+<div id="childrenList" class="space-y-3 mb-6"></div>
+
+<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn">
++ Tilføj barn
+</button>
 </div>
 
 <!-- Add Child Modal -->
@@ -93,31 +90,17 @@ oninput="updateAllowanceLabel()" class="w-full bg-gray-700 rounded-lg px-4 py-3 
 <p class="text-xs text-gray-500 mt-2">Ændringer gælder fra næste fredag kl. 15</p>
 </div>
 
-<!-- Date Simulation (TEST ONLY) -->
-<div class="bg-yellow-900/30 border border-yellow-600 rounded-xl p-4 mb-4">
-<h3 class="font-semibold mb-2 text-yellow-400">🧪 TEST: Dato simulering</h3>
-<div class="flex items-center justify-between">
-<button onclick="simDate(-7)" class="bg-yellow-700 px-3 py-2 rounded-lg text-sm">-7 dage</button>
-<span id="simDate" class="text-yellow-300"></span>
-<button onclick="simDate(7)" class="bg-yellow-700 px-3 py-2 rounded-lg text-sm">+7 dage</button>
-</div>
-<button onclick="runSimulation()" class="w-full bg-yellow-600 text-black font-bold py-2 rounded-lg mt-2 btn">Kør simulation</button>
-</div>
-
 <div class="bg-gray-800 rounded-2xl p-4 mb-4">
 <h3 class="font-semibold mb-3">Ny transaktion</h3>
 <p class="text-xs text-gray-500 mb-2">Kun tal og +/-</p>
 <input type="text" id="transAmount" placeholder="+/- kr." 
-oninput="this.value=this.value.replace(/[^0-9+-]/g,''); checkTransType()" 
+oninput="this.value=this.value.replace(/[^0-9+-]/g,''); updateDescOptions();" 
 class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 
 <label class="block text-sm text-gray-400 mb-1">Beskrivelse</label>
-<select id="transDescSelect" onchange="handleDescSelect()" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
+<select id="transDesc" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <option value="">Vælg...</option>
 </select>
-
-<input type="text" id="transDescCustom" placeholder="Beskrivelse (max 20 tegn)" 
-maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3 hidden">
 
 <button onclick="addTransaction()" class="w-full bg-green-500 text-black font-bold py-3 rounded-lg btn">Tilføj</button>
 </div>
@@ -144,9 +127,8 @@ maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3 hidden">
 <div id="deleteTransConfirm" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
 <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
 <h2 class="text-xl font-bold mb-4">Slet transaktion?</h2>
-<p class="text-gray-400 mb-2" id="deleteTransAmount"></p>
-<p class="text-gray-500 text-sm" id="deleteTransDesc"></p>
-<div class="flex gap-3 mt-6">
+<p class="text-gray-400 mb-6">Beløb: <span id="deleteTransAmount"></span></p>
+<div class="flex gap-3">
 <button onclick="hideDeleteTransConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
 <button onclick="deleteTransaction()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
 </div>
@@ -154,25 +136,24 @@ maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3 hidden">
 </div>
 
 <script>
-const POSITIVE_OPTS = ['Pligter', 'Gave', 'Ekstra'];
-const NEGATIVE_OPTS = ['Tøj', 'Underholdning', 'Andet'];
-
 let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
-let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":3}');
+let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":4}');
 let currentChild = null;
-let deleteTransIndex = null;
-let simOffset = 0;
 let currentTransType = 0;
 
-function getSimDate() {
-const d = new Date();
-d.setDate(d.getDate() + simOffset);
-return d;
-}
+const POS_OPTS = ['Pligter', 'Gave', 'Andet'];
+const NEG_OPTS = ['Tøj', 'Underholdning', 'Andet'];
 
-function fmt(n) {
-if(isNaN(n)) return "0";
-return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+function updateDescOptions() {
+const amt = document.getElementById('transAmount').value.trim();
+const sel = document.getElementById('transDesc');
+const isNeg = amt.startsWith('-');
+currentTransType = isNeg ? -1 : 1;
+const opts = isNeg ? NEG_OPTS : POS_OPTS;
+sel.innerHTML = '<option value="">Vælg...</option>';
+opts.forEach(o => { sel.innerHTML += '<option value="'+o+'">'+o+'</option>'; });
+}
+return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function save() {
@@ -201,12 +182,10 @@ document.getElementById('interestFreq').value = interest.freq;
 document.getElementById('interestToggle').textContent = interest.enabled ? 'SLÅET TIL' : 'SLÅET FRA';
 document.getElementById('interestToggle').className = interest.enabled ? 'text-green-400 text-sm' : 'text-gray-500 text-sm';
 document.getElementById('interestSettings').style.display = interest.enabled ? 'flex' : 'none';
-
-document.getElementById('simDate').textContent = getSimDate().toLocaleDateString('da-DK');
 }
 
 function getAge(birthDate) {
-const today = getSimDate();
+const today = new Date();
 const birth = new Date(birthDate);
 let age = today.getFullYear() - birth.getFullYear();
 const m = today.getMonth() - birth.getMonth();
@@ -216,145 +195,17 @@ age--;
 return age;
 }
 
-function getNextFriday(fromDate) {
-const now = fromDate || getSimDate();
+function getNextFriday() {
+const now = new Date();
 const friday = new Date(now);
 friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
 friday.setHours(15,0,0,0);
 if(friday <= now) friday.setDate(friday.getDate() + 7);
-return friday;
-}
-
-function getNextInterestDate(freq) {
-const now = getSimDate();
-let month = now.getMonth();
-let year = now.getFullYear();
-let day = 0;
-
-if(freq === 1) { // Monthly - last day of month
-const nextMonth = new Date(year, month + 2, 0);
-day = nextMonth.getDate();
-} else if(freq === 3) { // Quarterly - Mar, Jun, Sep, Dec
-const quarters = [2, 5, 8, 11];
-if(!quarters.includes(month)) {
-month = quarters.find(q => q > month) || quarters[0];
-if(month <= now.getMonth()) year++;
-}
-const nextQuarter = new Date(year, month + 1, 0);
-day = nextQuarter.getDate();
-} else if(freq === 12) { // Yearly - December
-month = 11;
-const nextYear = new Date(year + 1, 0, 0);
-day = nextYear.getDate();
-}
-
-const d = new Date(year, month, day, 12, 0, 0);
-if(d <= now) {
-if(freq === 1) {
-d.setMonth(d.getMonth() + 1);
-const m = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-d.setDate(m.getDate());
-} else if(freq === 3) {
-d.setMonth(d.getMonth() + 3);
-const m = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-d.setDate(m.getDate());
-} else {
-d.setFullYear(d.getFullYear() + 1);
-}
-}
-return d;
-}
-
-function countFridaysSince(lastDate) {
-const now = getSimDate();
-const last = new Date(lastDate);
-let count = 0;
-const nextFriday = getNextFriday(last);
-if(nextFriday <= now && nextFriday > last) {
-count++;
-}
-let current = new Date(nextFriday);
-while(current < now) {
-current.setDate(current.getDate() + 7);
-if(current <= now) count++;
-}
-return count;
-}
-
-function processScheduledPayments() {
-children.forEach(c => {
-if(c.lastProcessed) {
-const fridaysPassed = countFridaysSince(c.lastProcessed);
-if(fridaysPassed > 0) {
-const amount = fridaysPassed * c.allowance;
-c.saldo += amount;
-c.transactions.unshift({
-date: getSimDate().toISOString(),
-amount: amount,
-desc: `Lommepenge (${fridaysPassed} gang${fridaysPassed > 1 ? 'e' : ''})`
-});
-}
-}
-c.lastProcessed = getSimDate().toISOString();
-});
-}
-
-function processInterest() {
-if(!interest.enabled) return;
-const now = getSimDate();
-
-children.forEach(c => {
-const rate = c.interestRate || interest.rate;
-const freq = c.interestFreq || interest.freq;
-const lastPayout = c.lastInterestPayout ? new Date(c.lastInterestPayout) : new Date(c.created || now.toISOString());
-const nextPayout = getNextInterestDate(freq);
-
-if(nextPayout <= now) {
-const months = (now.getFullYear() - lastPayout.getFullYear()) * 12 + now.getMonth() - lastPayout.getMonth();
-if(months >= (12/freq)) {
-const periods = Math.floor(months / (12/freq));
-const interestAmount = Math.round(c.saldo * (rate/100) * (periods * (freq/12)));
-if(interestAmount > 0) {
-c.saldo += interestAmount;
-c.transactions.unshift({
-date: now.toISOString(),
-amount: interestAmount,
-desc: `Rente (${periods} gang${periods > 1 ? 'e' : ''})`
-});
-}
-}
-c.lastInterestPayout = nextPayout.toISOString();
-c.interestRate = rate;
-c.interestFreq = freq;
-}
-});
-}
-
-function simDate(days) {
-simOffset += days;
-document.getElementById('simDate').textContent = getSimDate().toLocaleDateString('da-DK');
-}
-
-function runSimulation() {
-processScheduledPayments();
-processInterest();
-save();
-if(currentChild !== null) {
-openChild(currentChild);
-} else {
-render();
-}
-alert('Simulation kørt! Tjek transaktionerne.');
+return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
 }
 
 function toggleInterest() {
 interest.enabled = !interest.enabled;
-save();
-}
-
-function updateInterest() {
-interest.rate = parseFloat(document.getElementById('interestRate').value) || 0;
-interest.freq = parseInt(document.getElementById('interestFreq').value);
 save();
 }
 
@@ -387,12 +238,7 @@ age: getAge(birth),
 allowance, 
 saldo: 0, 
 transactions: [], 
-nextPay: getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'}),
-lastProcessed: getSimDate().toISOString(),
-created: getSimDate().toISOString(),
-interestRate: interest.rate,
-interestFreq: interest.freq,
-lastInterestPayout: getSimDate().toISOString()
+nextPay: getNextFriday()
 });
 save();
 hideAddChild();
@@ -405,57 +251,23 @@ currentChild = null;
 render();
 }
 
-function checkTransType() {
-const amount = document.getElementById('transAmount').value.trim();
-if(amount.startsWith('-')) {
-currentTransType = -1;
-} else {
-currentTransType = 1;
-}
-updateDescSelect();
-}
-
-function updateDescSelect() {
-const select = document.getElementById('transDescSelect');
-const custom = document.getElementById('transDescCustom');
-const opts = currentTransType === -1 ? NEGATIVE_OPTS : POSITIVE_OPTS;
-
-select.innerHTML = '<option value="">Vælg...</option>';
-opts.forEach(o => {
-select.innerHTML += `<option value="${o}">${o}</option>`;
-});
-select.innerHTML += '<option value="__custom__">Andet...</option>';
-
-if(select.value === '__custom__') {
-custom.classList.remove('hidden');
-} else {
-custom.classList.add('hidden');
-}
-}
-
-function handleDescSelect() {
-const select = document.getElementById('transDescSelect');
-const custom = document.getElementById('transDescCustom');
-if(select.value === '__custom__') {
-custom.classList.remove('hidden');
-custom.focus();
-} else {
-custom.classList.add('hidden');
-}
+function openChild(i) {
+currentChild = i;
+const c = children[i];
+document.getElementById('home').classList.add('hidden');
+document.getElementById('childDetail').classList.remove('hidden');
+document.getElementById('detailName').textContent = c.name;
+document.getElementById('detailAge').textContent = c.age + ' år';
+document.getElementById('detailSaldo').textContent = fmt(c.saldo);
+document.getElementById('nextFriday').textContent = c.nextPay;
+document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
+updateDescOptions();
+renderTrans();
 }
 
 function addTransaction() {
 const amountStr = document.getElementById('transAmount').value.trim();
-const select = document.getElementById('transDescSelect');
-const custom = document.getElementById('transDescCustom');
-let desc = '';
-
-if(select.value && select.value !== '__custom__') {
-desc = select.value;
-} else if(custom.value.trim()) {
-desc = custom.value.trim().substring(0,20);
-}
-
+const desc = document.getElementById('transDesc').value;
 if(!amountStr) return alert('Indtast et beløb!');
 
 const amount = Math.round(parseFloat(amountStr));
@@ -463,18 +275,16 @@ if(isNaN(amount)) return alert('Ugyldigt beløb!');
 
 children[currentChild].saldo += amount;
 children[currentChild].transactions.unshift({
-date: getSimDate().toISOString(),
+date: new Date().toISOString(),
 amount: amount,
 desc: desc || 'Transaktion'
 });
-children[currentChild].nextPay = getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'});
+children[currentChild].nextPay = getNextFriday();
 save();
 
 document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
 document.getElementById('transAmount').value = '';
-select.value = '';
-custom.value = '';
-currentTransType = 0;
+document.getElementById('transDesc').value = '';
 renderTrans();
 }
 
@@ -485,15 +295,14 @@ list.innerHTML = '';
 c.transactions.forEach((t, idx) => {
 const isNeg = t.amount < 0;
 const desc = t.desc || 'Transaktion';
-const date = new Date(t.date).toLocaleDateString('da-DK');
 list.innerHTML += `
-<div class="bg-gray-700 rounded-lg p-3 trans-row">
+<div class="bg-gray-700 rounded-lg p-3 flex justify-between items-center gap-2">
 <div class="flex items-center gap-2 flex-1 min-w-0">
-<span class="trans-amount font-semibold ${isNeg ? 'text-red-400' : 'text-green-400'} text-lg">${isNeg ? '' : '+'}${fmt(t.amount)} kr</span>
-<span class="trans-desc text-gray-300 text-sm">${desc}</span>
+<span class="font-semibold ${isNeg ? 'text-red-400' : 'text-green-400'} text-lg whitespace-nowrap">${isNeg ? '' : '+'}${fmt(t.amount)} kr</span>
+<span class="text-gray-300 text-sm trans-desc">${desc}</span>
 </div>
 <div class="flex items-center gap-2">
-<span class="trans-date text-xs text-gray-500">${date}</span>
+<span class="text-xs text-gray-500">${new Date(t.date).toLocaleDateString('da-DK')}</span>
 <button onclick="confirmDeleteTrans(${idx})" class="text-red-400 text-xs px-2 py-1">✕</button>
 </div>
 </div>
@@ -505,23 +314,9 @@ function changeAllowance(delta) {
 children[currentChild].allowance += delta;
 if(children[currentChild].allowance < 0) children[currentChild].allowance = 0;
 document.getElementById('allowanceAmount').textContent = fmt(children[currentChild].allowance) + ' kr';
-children[currentChild].nextPay = getNextFriday().toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short'});
+children[currentChild].nextPay = getNextFriday();
 document.getElementById('nextFriday').textContent = children[currentChild].nextPay;
 save();
-}
-
-function openChild(i) {
-currentChild = i;
-const c = children[i];
-document.getElementById('home').classList.add('hidden');
-document.getElementById('childDetail').classList.remove('hidden');
-document.getElementById('detailName').textContent = c.name;
-document.getElementById('detailAge').textContent = c.age + ' år';
-document.getElementById('detailSaldo').textContent = fmt(c.saldo);
-document.getElementById('nextFriday').textContent = c.nextPay;
-document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
-renderTrans();
-updateDescSelect();
 }
 
 function confirmDelete() {
@@ -543,8 +338,7 @@ showHome();
 function confirmDeleteTrans(idx) {
 deleteTransIndex = idx;
 const t = children[currentChild].transactions[idx];
-document.getElementById('deleteTransAmount').innerHTML = `<span class="${t.amount < 0 ? 'text-red-400' : 'text-green-400'}">${t.amount > 0 ? '+' : ''}${fmt(t.amount)} kr</span>`;
-document.getElementById('deleteTransDesc').textContent = t.desc;
+document.getElementById('deleteTransAmount').textContent = (t.amount > 0 ? '+' : '') + fmt(t.amount) + ' kr';
 document.getElementById('deleteTransConfirm').classList.remove('hidden');
 }
 
@@ -564,10 +358,16 @@ renderTrans();
 hideDeleteTransConfirm();
 }
 
-// Process on load
-processScheduledPayments();
-processInterest();
+// Interest rate listener
+document.getElementById('interestRate').addEventListener('change', function() {
+interest.rate = parseFloat(this.value) || 0;
 save();
+});
+document.getElementById('interestFreq').addEventListener('change', function() {
+interest.freq = parseInt(this.value);
+save();
+});
+
 render();
 </script>
 </body>
