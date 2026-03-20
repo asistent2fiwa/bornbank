@@ -95,7 +95,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <input type="text" id="childName" placeholder="Fornavn" maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <label class="block text-sm text-gray-400 mb-1">Fødselsdato</label>
 <input type="date" id="childBirth" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-<label class="block text-sm text-gray-400 mb-1">Lommepenge/uge <span class="text-green-400 text-xs">(tilskrives fredag kl. 15)</span></label>
+<label class="block text-sm text-gray-400 mb-1">Lommepenge per uge <span class="text-green-400 text-xs">(tilskrives fredag kl. 15)</span></label>
 <input type="number" inputmode="numeric" id="childAllowance" placeholder="0" min="0" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-4">
 <div class="flex gap-3">
 <button onclick="hideAddChild()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Annuller</button>
@@ -120,7 +120,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-4 mb-4">
-<h3 class="font-semibold mb-3">Lommepenge/uge</h3>
+<h3 class="font-semibold mb-3">Lommepenge per uge</h3>
 <div class="flex items-center justify-between">
 <button onclick="changeAllowance(-1)" class="bg-red-500 text-white w-10 h-10 rounded-full text-xl font-bold">-</button>
 <span id="allowanceAmount" class="text-2xl font-bold">0 kr</span>
