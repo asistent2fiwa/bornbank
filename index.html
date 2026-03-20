@@ -19,8 +19,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <div id="setupScreen" class="hidden">
 <div class="text-center mb-8">
-<h1 class="text-3xl font-bold mb-2">🐷 Børnebank</h1>
-<p class="text-gray-400">Opret din familie eller del eksisterende</p>
+<span class="text-gray-500"></span>
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4">
@@ -34,6 +33,10 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <p class="text-sm text-gray-400 mb-4">Dette link giver <span class="text-red-400 font-bold">VOKSEN</span> adgang.<br>Ønskes barn-adgang, del fra barnets side.</p>
 <input type="text" id="joinCode" placeholder="Indsæt kode eller scan QR" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <button onclick="joinFamily()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">Tilslut</button>
+</div>
+
+<div class="mt-8 text-center text-gray-500">
+<span class="text-2xl">🐷</span> <span class="text-lg font-bold">Børnebank</span>
 </div>
 </div>
 
@@ -96,7 +99,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<p><span id="detailPiece2" class="text-4xl"></span> <span id="detailName2" class="text-2xl font-bold"></span> <span id="detailAge2" class="text-gray-400 text-lg"></span></p>
+<p><span id="detailPiece" class="text-4xl"></span> <span id="detailName" class="text-2xl font-bold"></span> <span id="detailAge" class="text-gray-400 text-lg"></span></p>
 <p class="text-5xl font-bold text-green-400 mt-2"><span id="detailSaldo">0</span> kr</p>
 <p class="text-sm text-gray-500 mt-2">Næste lommepenge: <span id="nextFriday"></span></p>
 </div>
@@ -211,10 +214,14 @@ const viewFamily = urlParams.get('f');
 const viewChild = urlParams.get('c');
 const parentCode = urlParams.get('p');
 
+let children = [];
+let interest = {enabled:true,rate:2,freq:3,lastInterest:""};
+let familyId = localStorage.getItem('bornbank_family') || '';
+let parentToken = localStorage.getItem('bornbank_parent') || '';
+
 // Supabase config
 const SUPABASE_URL = 'https://shbthjbunfcotbfbixxe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYnRoamJ1bmZjb3RiZmJpeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQ5MzYsImV4cCI6MjA4OTUyMDkzNn0.86q3qAVmqtR5LM1xhRs4ce66Tm5E51hGDSeXomIqUPU';
-
 let lastSyncTime = 0;
 
 async function syncToSupabase() {
@@ -252,10 +259,6 @@ async function createFamilyInSupabase() {
   } catch(e) { console.log('Create error:', e); }
 }
 
-let children = [];
-let interest = {enabled:true,rate:2,freq:3,lastInterest:""};
-let familyId = localStorage.getItem('bornbank_family') || '';
-let parentToken = localStorage.getItem('bornbank_parent') || '';
 let currentChild = null;
 let deleteTransIndex = null;
 let isReadOnly = false;
@@ -564,11 +567,8 @@ function openChild(i){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('childDetail').classList.remove('hidden');
   document.getElementById('detailPiece').textContent = c.piece || '🎯';
-  document.getElementById('detailPiece2').textContent = c.piece || '🎯';
   document.getElementById('detailName').textContent = c.name;
-  document.getElementById('detailName2').textContent = c.name;
   document.getElementById('detailAge').textContent = c.age + ' år';
-  document.getElementById('detailAge2').textContent = c.age + ' år';
   document.getElementById('detailSaldo').textContent = fmt(c.saldo);
   document.getElementById('nextFriday').textContent = c.nextPay;
   document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
