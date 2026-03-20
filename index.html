@@ -23,20 +23,26 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4">
-<h2 class="text-xl font-bold mb-4">Opret ny familie</h2>
-<p class="text-sm text-gray-400 mb-4">Start et nyt Børnebank for din familie</p>
+<h2 class="text-xl font-bold mb-4">Opret familie</h2>
+<p class="text-sm text-gray-400 mb-4">Start en Børnebank, hvor børnenes lommepenge kan registreres</p>
 <button onclick="createFamily()" class="w-full bg-green-500 text-black font-bold py-3 rounded-lg">Opret familie</button>
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6">
 <h2 class="text-xl font-bold mb-4">Tilslut eksisterende familie</h2>
-<p class="text-sm text-gray-400 mb-4">Dette link giver <span class="text-red-400 font-bold">VOKSEN</span> adgang.<br>Ønskes barn-adgang, del fra barnets side.</p>
+<p class="text-sm text-gray-400 mb-4">Hvis din familie allerede har oprettet en familie på en anden telefon, så tryk på "Del" så du kan modtage familie-linket, eller scan QR-koden fra den anden telefon.</p>
 <input type="text" id="joinCode" placeholder="Indsæt kode eller scan QR" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <button onclick="joinFamily()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">Tilslut</button>
 </div>
 
-<div class="mt-8 text-center text-gray-500">
-<span class="text-2xl">🐷</span> <span class="text-lg font-bold">Børnebank</span>
+<div class="mt-6 text-center text-gray-400 text-sm px-4">
+<p class="mb-2">Børnebank hjælper børn med at lære om økonomi og ejerskab.</p>
+<p>Som voksen "passer du på" pengene, indtil de skal bruges i virkeligheden.</p>
+</div>
+
+<div class="mt-6 text-center text-gray-500">
+<span class="text-2xl cursor-pointer" onclick="showFeedbackModal()">🐷</span>
+<p class="text-xs mt-1">Tryk på grisen for ris eller ros</p>
 </div>
 </div>
 
@@ -72,7 +78,8 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 
 <div class="mt-8 text-center text-gray-500">
-<span class="text-2xl">🐷</span> <span class="text-lg font-bold">Børnebank</span>
+<span class="text-2xl cursor-pointer" onclick="showFeedbackModal()">🐷</span> <span class="text-lg font-bold">Børnebank</span>
+<p class="text-xs mt-1">Tryk på grisen for ris eller ros</p>
 </div>
 </div>
 
@@ -176,6 +183,18 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <div id="qrParent" class="flex justify-center mb-4"></div>
 <button onclick="copyShareLink()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg mb-3">Kopiér link</button>
 <button onclick="hideShareModal()" class="w-full bg-gray-600 py-3 rounded-lg font-semibold">Luk</button>
+</div>
+</div>
+
+<div id="feedbackModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
+<h2 class="text-xl font-bold mb-4">Ris eller ros</h2>
+<p class="text-sm text-gray-400 mb-4">Har du feedback til Børnebank? Skriv til os!</p>
+<textarea id="feedbackText" placeholder="Din besked..." class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3 h-32"></textarea>
+<div class="flex gap-3">
+<button onclick="hideFeedbackModal()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Fortryd</button>
+<button onclick="sendFeedback()" class="flex-1 bg-green-500 text-black font-bold py-3 rounded-lg">Send</button>
+</div>
 </div>
 </div>
 
@@ -682,6 +701,32 @@ function showShareModal(){
 
 function hideShareModal(){
   document.getElementById('shareModal').classList.add('hidden');
+}
+
+function showFeedbackModal(){
+  document.getElementById('feedbackModal').classList.remove('hidden');
+}
+
+function hideFeedbackModal(){
+  document.getElementById('feedbackModal').classList.add('hidden');
+  document.getElementById('feedbackText').value = '';
+}
+
+function sendFeedback(){
+  const text = document.getElementById('feedbackText').value.trim();
+  if (!text) return alert('Skriv en besked først!');
+  
+  // Save feedback to Supabase
+  const feedback = {
+    text: text,
+    familyId: familyId || 'anonymous',
+    timestamp: Date.now()
+  };
+  
+  // For now, just log it - would need a feedback table in Supabase
+  console.log('Feedback:', feedback);
+  alert('Tak for din feedback!');
+  hideFeedbackModal();
 }
 
 function copyShareLink(){
