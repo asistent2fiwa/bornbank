@@ -301,7 +301,8 @@ function init(){
   let touchStartX = 0;
   document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
   document.addEventListener('touchend', e => {
-    if (touchStartX - e.changedTouches[0].clientX > 50) {
+    // Swipe right to go back
+    if (e.changedTouches[0].clientX - touchStartX > 50) {
       if (isReadOnly) window.location.href = window.location.pathname;
       else showHome();
     }
