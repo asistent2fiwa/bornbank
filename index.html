@@ -19,9 +19,24 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </head>
 <body class="p-4">
 
+<!-- Setup Screen -->
+<div id="setupScreen" class="hidden text-center py-8">
+<h1 class="text-3xl font-bold mb-8">🐷 Børnebank</h1>
+<div class="bg-gray-800 rounded-xl p-6 mb-4">
+<h2 class="text-xl font-bold mb-4">Opret familie</h2>
+<button onclick="createFamily()" class="w-full bg-green-500 text-black font-bold py-3 rounded-xl">Opret ny familie</button>
+</div>
+<div class="bg-gray-800 rounded-xl p-6">
+<h2 class="text-xl font-bold mb-4">Tilmeld eksisterende familie</h2>
+<input type="text" id="joinFamilyCode" placeholder="Familie-kode" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
+<button onclick="joinFamily()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-xl">Tilmeld</button>
+</div>
+</div>
+
 <div id="home">
 <div class="flex justify-between items-center mb-4">
 <h1 class="text-2xl font-bold">🐷 Børnebank</h1>
+<span id="familyCodeDisplay" class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded"></span>
 </div>
 
 <div id="childrenList" class="space-y-3 mb-4"></div>
@@ -136,6 +151,68 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 
 <script>
+// Supabase config
+const SUPABASE_URL = 'https://shbthjbunfcotbfbixxe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYnRoamJ1bmZjb3RiZmJpeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQ5MzYsImV4cCI6MjA4OTUyMDkzNn0.86q3qAVmqtR5LM1xhRs4ce66Tm5E51hGDSeXomIqUPU';
+let familyId = localStorage.getItem('bornbank_family');
+let parentToken = localStorage.getItem('bornbank_parent');
+
+async function syncToSupabase() {
+  if (!familyId) return;
+  const data = {children, interest};
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId, {
+      method: 'PUT',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify(data)})
+    });
+  } catch(e) { console.log('Sync error:', e); }
+}
+
+async function syncFromSupabase() {
+  if (!familyId) return null;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId + '&select=data', {
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY}
+    });
+    const rows = await res.json();
+    if (rows && rows[0] && rows[0].data) return JSON.parse(rows[0].data);
+  } catch(e) { console.log('Load error:', e); }
+  return null;
+}
+
+function generateId() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+async function createFamily() {
+  familyId = generateId();
+  parentToken = familyId + '-' + generateId();
+  localStorage.setItem('bornbank_family', familyId);
+  localStorage.setItem('bornbank_parent', parentToken);
+  children = [];
+  interest = {enabled:true, rate:2, freq:3, lastInterest:''};
+  save();
+  // Create in Supabase
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/families', {
+      method: 'POST',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify({children, interest})})
+    });
+  } catch(e) { console.log('Create error:', e); }
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('home').classList.remove('hidden');
+}
+
+function joinFamily() {
+  const code = document.getElementById('joinFamilyCode').value.trim().toUpperCase();
+  if (!code) return alert('Indtast en familie-kode!');
+  familyId = code;
+  localStorage.setItem('bornbank_family', familyId);
+  location.reload();
+}
+
 let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
 let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":3}');
 let currentChild = null;
@@ -152,10 +229,12 @@ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 function save() {
 localStorage.setItem('bornbank', JSON.stringify(children));
 localStorage.setItem('bornbank_interest', JSON.stringify(interest));
+syncToSupabase();
 render();
 }
 
 function render() {
+if (familyId) document.getElementById('familyCodeDisplay').textContent = 'Familie: ' + familyId;
 const list = document.getElementById('childrenList');
 list.innerHTML = '';
 children.forEach((c, i) => {
@@ -439,9 +518,22 @@ renderTrans();
 hideDeleteTransConfirm();
 }
 
-// Process auto transactions on load
-processAutoTransactions();
-render();
+// Initialize
+async function init() {
+  if (!familyId) {
+    document.getElementById('setupScreen').classList.remove('hidden');
+    document.getElementById('home').classList.add('hidden');
+  } else {
+    const supabaseData = await syncFromSupabase();
+    if (supabaseData) {
+      children = supabaseData.children || [];
+      interest = supabaseData.interest || {enabled:true,rate:2,freq:3};
+    }
+  }
+  processAutoTransactions();
+  render();
+}
+init();
 </script>
 </body>
 </html>
