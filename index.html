@@ -9,19 +9,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 *{font-family:'Outfit',system-ui,sans-serif}
 body{background:#0f0f14;color:#fff;min-height:100vh}
-.btn{transition:all 0.2s}
-.btn:active{transform:scale(0.95)}
-.neg{-color:#ef4444}
+.btn{transition:all 0.15s}
+.btn:active{transform:scale(0.96)}
+.trans-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:nowrap}
+.trans-amount{white-space:nowrap}
+.trans-desc{max-width:50%;word-wrap:break-word;white-space:normal}
+.trans-date{white-space:nowrap}
 </style>
 </head>
 <body class="p-4">
 
 <div id="home">
-<div class="flex justify-between items-center mb-6">
+<div class="flex justify-between items-center mb-4">
 <h1 class="text-2xl font-bold">🐷 Børnebank</h1>
 </div>
 
-<div id="childrenList" class="space-y-3 mb-6"></div>
+<div id="childrenList" class="space-y-3 mb-4"></div>
 
 <button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn mb-4">
 + Tilføj barn
@@ -69,7 +72,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <!-- Child Detail -->
 <div id="childDetail" class="hidden">
-<button onclick="showHome()" class="text-gray-400 mb-4">← Tilbage</button>
+<button onclick="showHome()" class="text-gray-400 mb-4 btn">← Tilbage</button>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
 <h2 id="detailName" class="text-2xl font-bold mb-2"></h2>
@@ -104,7 +107,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <h3 class="font-semibold mb-3">Transaktioner</h3>
 <div id="transList" class="space-y-2 mb-4"></div>
 
-<button onclick="confirmDelete()" class="w-full bg-red-600 font-bold py-3 rounded-lg mt-8">Slet barn</button>
+<button onclick="confirmDelete()" class="w-full bg-red-600 font-bold py-3 rounded-lg mt-8 btn">Slet barn</button>
 </div>
 
 <!-- Delete Confirm -->
@@ -113,8 +116,21 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <h2 class="text-xl font-bold mb-4">Slet <span id="deleteName"></span>?</h2>
 <p class="text-gray-400 mb-6">Dette kan ikke fortrydes!</p>
 <div class="flex gap-3">
-<button onclick="hideDeleteConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Fortryd</button>
-<button onclick="deleteChild()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg">Slet</button>
+<button onclick="hideDeleteConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
+<button onclick="deleteChild()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
+</div>
+</div>
+</div>
+
+<!-- Delete Trans Confirm -->
+<div id="deleteTransConfirm" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
+<h2 class="text-xl font-bold mb-4">Slet transaktion?</h2>
+<p class="text-gray-400 mb-2" id="deleteTransAmount"></p>
+<p class="text-gray-500 text-sm" id="deleteTransDesc"></p>
+<div class="flex gap-3 mt-6">
+<button onclick="hideDeleteTransConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
+<button onclick="deleteTransaction()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
 </div>
 </div>
 </div>
@@ -133,17 +149,9 @@ if(isNaN(n)) return "0";
 return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-function updateDescOptions() {
-const amt = document.getElementById('transAmount').value;
-const sel = document.getElementById('transDesc');
-const isNeg = transType === -1;
-const opts = isNeg ? NEG_OPTS : POS_OPTS;
-sel.innerHTML = '<option value="">Vælg...</option>';
-opts.forEach(o => { sel.innerHTML += '<option value="'+o+'">'+o+'</option>'; });
-}
-
 function save() {
 localStorage.setItem('bornbank', JSON.stringify(children));
+localStorage.setItem('bornbank_interest', JSON.stringify(interest));
 render();
 }
 
@@ -168,15 +176,6 @@ document.getElementById('interestToggle').className = interest.enabled ? 'text-g
 document.getElementById('interestSettings').style.display = interest.enabled ? 'flex' : 'none';
 }
 
-function getNextFriday() {
-const now = new Date();
-const friday = new Date(now);
-friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
-friday.setHours(15,0,0,0);
-if(friday <= now) friday.setDate(friday.getDate() + 7);
-return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-}
-
 function getAge(birthDate) {
 const today = new Date();
 const birth = new Date(birthDate);
@@ -186,6 +185,87 @@ if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
 age--;
 }
 return age;
+}
+
+function getNextFriday() {
+const now = new Date();
+const friday = new Date(now);
+friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
+friday.setHours(15,0,0,0);
+if(friday <= now) friday.setDate(friday.getDate() + 7);
+return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+}
+
+function getNextFridayDate() {
+const now = new Date();
+const friday = new Date(now);
+friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
+friday.setHours(15,0,0,0);
+if(friday <= now) friday.setDate(friday.getDate() + 7);
+return friday;
+}
+
+// Auto-process: Run on load to check for pending allowance/interest
+function processAutoTransactions() {
+const now = new Date();
+let processed = false;
+
+children.forEach(c => {
+if(!c.lastProcessed) c.lastProcessed = now.toISOString();
+
+// Check for pending allowance payments
+if(c.lastProcessed) {
+const lastProc = new Date(c.lastProcessed);
+const nextFriday = getNextFridayDate();
+
+while(nextFriday <= now && nextFriday > lastProc) {
+const amount = c.allowance || 0;
+if(amount > 0) {
+c.saldo += amount;
+c.transactions.unshift({
+date: now.toISOString(),
+amount: amount,
+desc: 'Lommepenge (auto)'
+});
+processed = true;
+}
+// Move to next friday
+const next = new Date(lastProc);
+next.setDate(next.getDate() + 7);
+c.lastProcessed = next.toISOString();
+}
+}
+
+// Check for pending interest
+if(interest.enabled && c.lastInterestPayout) {
+const lastPayout = new Date(c.lastInterestPayout);
+const months = (now.getFullYear() - lastPayout.getFullYear()) * 12 + now.getMonth() - lastPayout.getMonth();
+const freq = interest.freq || 3;
+if(months >= (12/freq)) {
+const periods = Math.floor(months / (12/freq));
+const rate = interest.rate || 2;
+const interestAmount = Math.round(c.saldo * (rate/100) * (periods * (freq/12)));
+if(interestAmount > 0) {
+c.saldo += interestAmount;
+c.transactions.unshift({
+date: now.toISOString(),
+amount: interestAmount,
+desc: `Rente (auto)`
+});
+processed = true;
+}
+c.lastInterestPayout = now.toISOString();
+}
+}
+
+if(!c.lastInterestPayout) {
+c.lastInterestPayout = now.toISOString();
+}
+});
+
+if(processed) {
+save();
+}
 }
 
 function toggleInterest() {
@@ -203,8 +283,16 @@ function showAddChild() { document.getElementById('addChild').classList.remove('
 function hideAddChild() { 
 document.getElementById('addChild').classList.add('hidden');
 document.getElementById('childName').value = '';
-document.getElementById('childAge').value = '';
+document.getElementById('childBirth').value = '';
 document.getElementById('childAllowance').value = '';
+document.getElementById('allowanceLabel').textContent = '';
+}
+
+function updateDescOptions() {
+const sel = document.getElementById('transDesc');
+const opts = transType === -1 ? NEG_OPTS : POS_OPTS;
+sel.innerHTML = '<option value="">Vælg...</option>';
+opts.forEach(o => { sel.innerHTML += '<option value="'+o+'">'+o+'</option>'; });
 }
 
 function saveChild() {
@@ -222,7 +310,9 @@ age: getAge(birth),
 allowance, 
 saldo: 0, 
 transactions: [], 
-nextPay: getNextFriday()
+nextPay: getNextFriday(),
+lastProcessed: new Date().toISOString(),
+lastInterestPayout: new Date().toISOString()
 });
 save();
 hideAddChild();
@@ -243,7 +333,7 @@ document.getElementById('childDetail').classList.remove('hidden');
 document.getElementById('detailName').textContent = c.name;
 document.getElementById('detailAge').textContent = c.age + ' år';
 document.getElementById('detailSaldo').textContent = fmt(c.saldo);
-document.getElementById('nextFriday').textContent = c.nextPay;
+document.getElementById('nextFriday').textContent = c.nextPay || getNextFriday();
 document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
 updateDescOptions();
 renderTrans();
@@ -258,19 +348,20 @@ updateDescOptions();
 
 function addTransaction() {
 const amount = parseInt(document.getElementById('transAmount').value) || 0;
-const desc = document.getElementById('transDesc').value.trim() || 'Transaktion';
+const desc = document.getElementById('transDesc').value;
 if(!amount) return alert('Indtast et beløb!');
 
-children[currentChild].saldo += amount * transType;
+const finalAmount = amount * transType;
+children[currentChild].saldo += finalAmount;
 children[currentChild].transactions.unshift({
 date: new Date().toISOString(),
-amount: amount * transType,
-desc: desc
+amount: finalAmount,
+desc: desc || 'Transaktion'
 });
 children[currentChild].nextPay = getNextFriday();
 save();
 
-document.getElementById('detailSaldo').textContent = children[currentChild].saldo;
+document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
 document.getElementById('transAmount').value = '';
 document.getElementById('transDesc').value = '';
 renderTrans();
@@ -280,15 +371,20 @@ function renderTrans() {
 const c = children[currentChild];
 const list = document.getElementById('transList');
 list.innerHTML = '';
-c.transactions.forEach(t => {
+c.transactions.forEach((t, idx) => {
 const isNeg = t.amount < 0;
+const desc = t.desc || 'Transaktion';
+const date = new Date(t.date).toLocaleDateString('da-DK');
 list.innerHTML += `
-<div class="bg-gray-700 rounded-lg p-3 flex justify-between items-center">
-<div>
-<div class="font-semibold ${isNeg ? 'text-red-400' : 'text-green-400'}">${t.amount > 0 ? '+' : ''}${t.amount} kr</div>
-<div class="text-sm text-gray-400">${t.desc}</div>
+<div class="bg-gray-700 rounded-lg p-3 trans-row">
+<div class="flex items-center gap-2 flex-1 min-w-0">
+<span class="trans-amount font-semibold ${isNeg ? 'text-red-400' : 'text-green-400'} text-lg">${isNeg ? '' : '+'}${fmt(t.amount)} kr</span>
+<span class="trans-desc text-gray-300 text-sm">${desc}</span>
 </div>
-<div class="text-xs text-gray-500">${new Date(t.date).toLocaleDateString('da-DK')}</div>
+<div class="flex items-center gap-2">
+<span class="trans-date text-xs text-gray-500">${date}</span>
+<button onclick="confirmDeleteTrans(${idx})" class="text-red-400 text-xs px-2 py-1">✕</button>
+</div>
 </div>
 `;
 });
@@ -319,6 +415,32 @@ hideDeleteConfirm();
 showHome();
 }
 
+function confirmDeleteTrans(idx) {
+deleteTransIndex = idx;
+const t = children[currentChild].transactions[idx];
+document.getElementById('deleteTransAmount').innerHTML = `<span class="${t.amount < 0 ? 'text-red-400' : 'text-green-400'}">${t.amount > 0 ? '+' : ''}${fmt(t.amount)} kr</span>`;
+document.getElementById('deleteTransDesc').textContent = t.desc;
+document.getElementById('deleteTransConfirm').classList.remove('hidden');
+}
+
+function hideDeleteTransConfirm() {
+document.getElementById('deleteTransConfirm').classList.add('hidden');
+deleteTransIndex = null;
+}
+
+function deleteTransaction() {
+if(deleteTransIndex !== null) {
+children[currentChild].saldo -= children[currentChild].transactions[deleteTransIndex].amount;
+children[currentChild].transactions.splice(deleteTransIndex, 1);
+save();
+document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
+renderTrans();
+}
+hideDeleteTransConfirm();
+}
+
+// Process auto transactions on load
+processAutoTransactions();
 render();
 </script>
 </body>
