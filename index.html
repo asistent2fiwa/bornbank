@@ -4,48 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Børnebank</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐷</text></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 *{font-family:'Outfit',system-ui,sans-serif}
 body{background:#0f0f14;color:#fff;min-height:100vh}
-.btn{transition:all 0.15s}
-.btn:active{transform:scale(0.96)}
-.trans-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:nowrap}
-.trans-amount{white-space:nowrap}
-.trans-desc{max-width:50%;word-wrap:break-word;white-space:normal}
-.trans-date{white-space:nowrap}
+.btn{transition:all 0.2s}
+.btn:active{transform:scale(0.95)}
 </style>
 </head>
 <body class="p-4">
 
-<!-- Setup Screen -->
-<div id="setupScreen" class="hidden text-center py-8">
-<h1 class="text-3xl font-bold mb-8">🐷 Børnebank</h1>
-<div class="bg-gray-800 rounded-xl p-6 mb-4">
-<h2 class="text-xl font-bold mb-4">Opret familie</h2>
-<button onclick="createFamily()" class="w-full bg-green-500 text-black font-bold py-3 rounded-xl">Opret ny familie</button>
+<div id="setupScreen" class="hidden">
+<div class="text-center mb-8">
+<h1 class="text-3xl font-bold mb-2">🐷 Børnebank</h1>
+<p class="text-gray-400">Opret din familie eller del eksisterende</p>
 </div>
-<div class="bg-gray-800 rounded-xl p-6">
-<h2 class="text-xl font-bold mb-4">Tilmeld eksisterende familie</h2>
-<input type="text" id="joinFamilyCode" placeholder="Familie-kode" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-<button onclick="joinFamily()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-xl">Tilmeld</button>
+
+<div class="bg-gray-800 rounded-2xl p-6 mb-4">
+<h2 class="text-xl font-bold mb-4">Opret ny familie</h2>
+<p class="text-sm text-gray-400 mb-4">Start et nyt Børnebank for din familie</p>
+<button onclick="createFamily()" class="w-full bg-green-500 text-black font-bold py-3 rounded-lg">Opret familie</button>
+</div>
+
+<div class="bg-gray-800 rounded-2xl p-6">
+<h2 class="text-xl font-bold mb-4">Tilslut eksisterende familie</h2>
+<p class="text-sm text-gray-400 mb-4">Dette link giver <span class="text-red-400 font-bold">VOKSEN</span> adgang.<br>Ønskes barn-adgang, del fra barnets side.</p>
+<input type="text" id="joinCode" placeholder="Indsæt kode eller scan QR" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
+<button onclick="joinFamily()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">Tilslut</button>
 </div>
 </div>
 
 <div id="home">
-<div class="flex justify-between items-center mb-4">
+<div class="flex justify-between items-center mb-6">
 <h1 class="text-2xl font-bold">🐷 Børnebank</h1>
-<span id="familyCodeDisplay" class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded"></span>
+<button onclick="showShareModal()" class="text-green-400 text-sm">Del ↗</button>
 </div>
 
-<div id="childrenList" class="space-y-3 mb-4"></div>
+<div id="familyInfo" class="text-xs text-gray-500 mb-4 hidden">
+<span id="familyCodeDisplay"></span>
+</div>
 
-<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn mb-4">
-+ Tilføj barn
-</button>
+<div id="childrenList" class="space-y-3 mb-6"></div>
 
-<!-- Renter settings -->
+<button onclick="showAddChild()" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-xl btn mb-4">+ Tilføj barn</button>
+
 <div class="bg-gray-800 rounded-xl p-4">
 <div class="flex justify-between items-center mb-3">
 <span class="font-semibold">💰 Renter</span>
@@ -60,24 +65,19 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <option value="12">År</option>
 </select>
 </div>
+<p id="nextInterestDate" class="text-xs text-gray-500 mt-2"></p>
 </div>
 </div>
 
-<!-- Add Child Modal -->
 <div id="addChild" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
 <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
 <h2 class="text-xl font-bold mb-4">Nyt barn</h2>
-
-<label class="block text-sm text-gray-400 mb-1">Navn</label>
-<input type="text" id="childName" placeholder="Navn" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-
+<label class="block text-sm text-gray-400 mb-1">Fornavn <span class="text-xs text-gray-500">(max 20 tegn)</span></label>
+<input type="text" id="childName" placeholder="Fornavn" maxlength="20" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <label class="block text-sm text-gray-400 mb-1">Fødselsdato</label>
 <input type="date" id="childBirth" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
-
-<label class="block text-sm text-gray-400 mb-1">Lommepenge (kr.)</label>
-<input type="number" id="childAllowance" placeholder="0" min="0" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-4">
-<span id="allowanceLabel" class="text-sm text-gray-500"></span>
-
+<label class="block text-sm text-gray-400 mb-1">Lommepenge/uge <span class="text-green-400 text-xs">(tilskrives fredag kl. 15)</span></label>
+<input type="number" inputmode="numeric" id="childAllowance" placeholder="0" min="0" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-4">
 <div class="flex gap-3">
 <button onclick="hideAddChild()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Annuller</button>
 <button onclick="saveChild()" class="flex-1 bg-green-500 text-black font-bold py-3 rounded-lg">Gem</button>
@@ -85,14 +85,21 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 </div>
 
-<!-- Child Detail -->
 <div id="childDetail" class="hidden">
-<button onclick="showHome()" class="text-gray-400 mb-4 btn">← Tilbage</button>
+<div class="flex justify-between items-center mb-4">
+<button onclick="showHome()" class="text-gray-400 text-sm">← Tilbage</button>
+<button onclick="showChildQR()" class="text-green-400 text-sm">Del ↗</button>
+</div>
+
+<div class="flex items-center gap-3 mb-2">
+<span id="detailPiece" class="text-4xl"></span>
+<h1 id="detailName" class="text-3xl font-bold"></h1>
+<span id="detailAge" class="text-gray-400 text-xl"></span>
+</div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<h2 id="detailName" class="text-2xl font-bold mb-2"></h2>
-<p id="detailAge" class="text-gray-400 mb-2"></p>
-<p class="text-4xl font-bold text-green-400 mb-2"><span id="detailSaldo">0</span> kr</p>
+<p class="text-sm text-gray-400 mb-1">Saldo</p>
+<p class="text-5xl font-bold text-green-400 mb-2"><span id="detailSaldo">0</span> kr</p>
 <p class="text-sm text-gray-500">Næste lommepenge: <span id="nextFriday"></span></p>
 </div>
 
@@ -108,11 +115,11 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <div class="bg-gray-800 rounded-2xl p-4 mb-4">
 <h3 class="font-semibold mb-3">Ny transaktion</h3>
+<p class="text-xs text-gray-500 mb-2">Skriv beløb - tryk minus for udgift</p>
 <div class="flex gap-2 mb-3">
-<button onclick="setTransType(1)" id="btnPlus" class="flex-1 bg-green-500 text-black font-bold py-2 rounded-lg">+</button>
-<button onclick="setTransType(-1)" id="btnMinus" class="flex-1 bg-gray-600 font-bold py-2 rounded-lg">-</button>
+<input type="number" inputmode="numeric" id="transAmount" placeholder="Beløb" class="flex-1 bg-gray-700 rounded-lg px-4 py-3">
+<button onclick="toggleMinus()" id="minusBtn" class="bg-red-500 text-white w-14 h-14 rounded-lg text-xl font-bold flex items-center justify-center">-</button>
 </div>
-<input type="number" id="transAmount" placeholder="Beløb" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <select id="transDesc" class="w-full bg-gray-700 rounded-lg px-4 py-3 mb-3">
 <option value="">Vælg beskrivelse...</option>
 </select>
@@ -122,40 +129,96 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <h3 class="font-semibold mb-3">Transaktioner</h3>
 <div id="transList" class="space-y-2 mb-4"></div>
 
-<button onclick="confirmDelete()" class="w-full bg-red-600 font-bold py-3 rounded-lg mt-8 btn">Slet barn</button>
+<button onclick="confirmDelete()" class="w-full bg-red-600 font-bold py-3 rounded-lg mt-8">Slet barn</button>
+
+<div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-700">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🐷</span>
+<span class="text-gray-500 text-sm">Børnebank</span>
+</div>
+</div>
 </div>
 
-<!-- Delete Confirm -->
 <div id="deleteConfirm" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
 <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
 <h2 class="text-xl font-bold mb-4">Slet <span id="deleteName"></span>?</h2>
 <p class="text-gray-400 mb-6">Dette kan ikke fortrydes!</p>
 <div class="flex gap-3">
-<button onclick="hideDeleteConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
-<button onclick="deleteChild()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
+<button onclick="hideDeleteConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Fortryd</button>
+<button onclick="deleteChild()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg">Slet</button>
 </div>
 </div>
 </div>
 
-<!-- Delete Trans Confirm -->
 <div id="deleteTransConfirm" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
 <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
 <h2 class="text-xl font-bold mb-4">Slet transaktion?</h2>
-<p class="text-gray-400 mb-2" id="deleteTransAmount"></p>
-<p class="text-gray-500 text-sm" id="deleteTransDesc"></p>
-<div class="flex gap-3 mt-6">
-<button onclick="hideDeleteTransConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold btn">Fortryd</button>
-<button onclick="deleteTransaction()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg btn">Slet</button>
+<p class="text-gray-400 mb-6">Dette kan ikke fortrydes!</p>
+<div class="flex gap-3">
+<button onclick="hideDeleteTransConfirm()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Fortryd</button>
+<button onclick="confirmDeleteTransaction()" class="flex-1 bg-red-600 font-bold py-3 rounded-lg">Slet</button>
 </div>
+</div>
+</div>
+
+<div id="shareModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
+<h2 class="text-xl font-bold mb-4">Del til partner</h2>
+<p class="text-sm text-gray-400 mb-4 text-red-400 font-semibold">⚠️ VOKSEN adgang - giver fulde rettigheder</p>
+<div class="bg-gray-700 rounded-lg p-4 text-center mb-4">
+<p class="text-xs text-gray-400">Familie kode</p>
+<p id="shareCode" class="text-2xl font-bold text-green-400"></p>
+</div>
+<div id="qrParent" class="flex justify-center mb-4"></div>
+<button onclick="copyShareLink()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg mb-3">Kopiér link</button>
+<button onclick="hideShareModal()" class="w-full bg-gray-600 py-3 rounded-lg font-semibold">Luk</button>
+</div>
+</div>
+
+<div id="childQRModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
+<h2 class="text-xl font-bold mb-4">Del til <span id="childQRName"></span></h2>
+<p class="text-sm text-gray-400 mb-4">Barnet kan scanne denne QR-kode for at se sin saldo</p>
+<div id="qrChild" class="flex justify-center mb-4"></div>
+<button onclick="copyChildLink()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg mb-3">Kopiér link</button>
+<button onclick="hideChildQRModal()" class="w-full bg-gray-600 py-3 rounded-lg font-semibold">Luk</button>
+</div>
+</div>
+
+<div id="childView" class="hidden text-center">
+<div class="text-6xl mb-2 cursor-pointer" id="childPieceDisplay" onclick="togglePieceMenu()">🎯</div>
+<h1 class="text-3xl font-bold mb-2"><span id="childViewName"></span></h1>
+<p class="text-gray-400 mb-6">Kun til visning</p>
+
+<div id="pieceMenu" class="hidden bg-gray-800 rounded-xl p-4 mb-4 flex justify-center gap-2 flex-wrap"></div>
+
+<div class="bg-gray-800 rounded-2xl p-8 mb-6">
+<p class="text-sm text-gray-400 mb-2">Din saldo</p>
+<p class="text-5xl font-bold text-green-400 mb-2"><span id="childViewSaldo">0</span> kr</p>
+</div>
+
+<h3 class="font-semibold mb-3 text-left">Seneste transaktioner</h3>
+<div id="childViewTrans" class="space-y-2 mb-6"></div>
+
+<div class="border-t border-gray-700 pt-4">
+<p class="text-2xl mb-2">🐷</p>
+<p class="text-xs text-gray-500">Børnebank</p>
 </div>
 </div>
 
 <script>
+const MONOPOLY_PIECES = ['🎯','🎲','🏠','🚗','🐶','🎩','⚓','💎'];
+
+const urlParams = new URLSearchParams(window.location.search);
+const viewFamily = urlParams.get('f');
+const viewChild = urlParams.get('c');
+const parentCode = urlParams.get('p');
+
 // Supabase config
 const SUPABASE_URL = 'https://shbthjbunfcotbfbixxe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYnRoamJ1bmZjb3RiZmJpeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQ5MzYsImV4cCI6MjA4OTUyMDkzNn0.86q3qAVmqtR5LM1xhRs4ce66Tm5E51hGDSeXomIqUPU';
-let familyId = localStorage.getItem('bornbank_family');
-let parentToken = localStorage.getItem('bornbank_parent');
+
+let lastSyncTime = 0;
 
 async function syncToSupabase() {
   if (!familyId) return;
@@ -181,371 +244,545 @@ async function syncFromSupabase() {
   return null;
 }
 
-function generateId() {
+async function createFamilyInSupabase() {
+  const data = {children: [], interest: {enabled:true, rate:2, freq:3, lastInterest:''}};
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/families', {
+      method: 'POST',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify(data)})
+    });
+  } catch(e) { console.log('Create error:', e); }
+}
+
+let children = [];
+let interest = {enabled:true,rate:2,freq:3,lastInterest:""};
+let familyId = localStorage.getItem('bornbank_family') || '';
+let parentToken = localStorage.getItem('bornbank_parent') || '';
+let currentChild = null;
+let deleteTransIndex = null;
+let isReadOnly = false;
+let shownTransIds = new Set();
+
+const POS_OPTS = ['Pligter','Gave','Andet'];
+const NEG_OPTS = ['Tøj','Underholdning','Andet'];
+
+function init(){
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    if (touchStartX - e.changedTouches[0].clientX > 50) {
+      if (isReadOnly) window.location.href = window.location.pathname;
+      else showHome();
+    }
+  });
+
+  if (viewFamily && viewChild) {
+    isReadOnly = true;
+    loadChildView();
+    return;
+  }
+
+  if (parentCode && !familyId) {
+    familyId = parentCode.split('-')[0];
+    parentToken = parentCode;
+    localStorage.setItem('bornbank_family', familyId);
+    localStorage.setItem('bornbank_parent', parentToken);
+  }
+
+  if (!familyId) {
+    document.getElementById('setupScreen').classList.remove('hidden');
+    document.getElementById('home').classList.add('hidden');
+  } else {
+    loadData();
+    showHome();
+  }
+}
+
+async function loadData(){
+  // Try Supabase first
+  const supabaseData = await syncFromSupabase();
+  if (supabaseData) {
+    children = supabaseData.children || [];
+    interest = supabaseData.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
+  } else {
+    // Fallback to localStorage
+    const saved = localStorage.getItem('bornbank_' + familyId);
+    if (saved) {
+      const data = JSON.parse(saved);
+      children = data.children || [];
+      interest = data.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
+    }
+  }
+  document.getElementById('familyCodeDisplay').textContent = 'Familie: ' + familyId;
+  // Start realtime sync
+  setInterval(async () => {
+    const data = await syncFromSupabase();
+    if (data && data._timestamp && data._timestamp > lastSyncTime) {
+      children = data.children || [];
+      interest = data.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
+      lastSyncTime = data._timestamp;
+      render();
+    }
+  }, 3000);
+  render();
+}
+
+function saveData(){
+  const data = {children, interest};
+  localStorage.setItem('bornbank_' + familyId, JSON.stringify(data));
+  lastSyncTime = Date.now();
+  syncToSupabase();
+  render();
+}
+
+function generateId(){
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-async function createFamily() {
+function sanitizeName(name){
+  return name.replace(/[^a-zA-Z0-9æøåÆØÅ ]/g, '').substring(0, 20);
+}
+
+function createFamily(){
   familyId = generateId();
   parentToken = familyId + '-' + generateId();
   localStorage.setItem('bornbank_family', familyId);
   localStorage.setItem('bornbank_parent', parentToken);
   children = [];
-  interest = {enabled:true, rate:2, freq:3, lastInterest:''};
-  save();
-  // Create in Supabase
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/families', {
-      method: 'POST',
-      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
-      body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify({children, interest, _timestamp: Date.now()})})
-    });
-  } catch(e) { console.log('Create error:', e); }
+  interest = {enabled:true,rate:2,freq:3,lastInterest:""};
+  saveData();
+  createFamilyInSupabase();
   document.getElementById('setupScreen').classList.add('hidden');
-  document.getElementById('home').classList.remove('hidden');
-  location.reload();
+  showHome();
 }
 
-function joinFamily() {
-  const code = document.getElementById('joinFamilyCode').value.trim().toUpperCase();
-  if (!code) return alert('Indtast en familie-kode!');
-  familyId = code;
+function joinFamily(){
+  const code = document.getElementById('joinCode').value.trim();
+  if (code.length < 6) return alert('Ugyldig kode');
+  
+  familyId = code.split('-')[0];
+  parentToken = code;
   localStorage.setItem('bornbank_family', familyId);
-  location.reload();
+  localStorage.setItem('bornbank_parent', parentToken);
+  
+  loadData();
+  document.getElementById('setupScreen').classList.add('hidden');
+  showHome();
 }
 
-let children = JSON.parse(localStorage.getItem('bornbank') || '[]');
-let interest = JSON.parse(localStorage.getItem('bornbank_interest') || '{"enabled":true,"rate":2,"freq":3}');
-let currentChild = null;
-let transType = 1;
-
-const POS_OPTS = ['Pligter', 'Gave', 'Andet'];
-const NEG_OPTS = ['Tøj', 'Underholdning', 'Andet'];
-
-function fmt(n) {
-if(isNaN(n)) return "0";
-return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+function fmt(n){
+  if(isNaN(n)) return "0";
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-function save() {
-localStorage.setItem('bornbank', JSON.stringify(children));
-localStorage.setItem('bornbank_interest', JSON.stringify(interest));
-syncToSupabase();
-render();
-}
-
-function render() {
-if (familyId) document.getElementById('familyCodeDisplay').textContent = 'Familie: ' + familyId;
-const list = document.getElementById('childrenList');
-list.innerHTML = '';
-children.forEach((c, i) => {
-list.innerHTML += `
-<div onclick="openChild(${i})" class="bg-gray-800 rounded-xl p-4 flex justify-between items-center btn">
-<div>
-<div class="font-bold text-lg">${c.name}</div>
-<div class="text-sm text-gray-400">${c.age} år • ${fmt(c.allowance)} kr/uge</div>
-</div>
-<div class="text-2xl font-bold ${c.saldo >= 0 ? 'text-green-400' : 'text-red-400'}">${fmt(c.saldo)} kr</div>
-</div>
-`;
-});
-document.getElementById('interestRate').value = interest.rate;
-document.getElementById('interestFreq').value = interest.freq;
-document.getElementById('interestToggle').textContent = interest.enabled ? 'SLÅET TIL' : 'SLÅET FRA';
-document.getElementById('interestToggle').className = interest.enabled ? 'text-green-400 text-sm' : 'text-gray-500 text-sm';
-document.getElementById('interestSettings').style.display = interest.enabled ? 'flex' : 'none';
-}
-
-function getAge(birthDate) {
-const today = new Date();
-const birth = new Date(birthDate);
-let age = today.getFullYear() - birth.getFullYear();
-const m = today.getMonth() - birth.getMonth();
-if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-age--;
-}
-return age;
-}
-
-function getNextFriday() {
-const now = new Date();
-const friday = new Date(now);
-friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
-friday.setHours(15,0,0,0);
-if(friday <= now) friday.setDate(friday.getDate() + 7);
-return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-}
-
-function getNextFridayDate() {
-const now = new Date();
-const friday = new Date(now);
-friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
-friday.setHours(15,0,0,0);
-if(friday <= now) friday.setDate(friday.getDate() + 7);
-return friday;
-}
-
-// Auto-process: Run on load to check for pending allowance/interest
-function processAutoTransactions() {
-const now = new Date();
-let processed = false;
-
-children.forEach(c => {
-if(!c.lastProcessed) c.lastProcessed = now.toISOString();
-
-// Check for pending allowance payments
-if(c.lastProcessed) {
-const lastProc = new Date(c.lastProcessed);
-const nextFriday = getNextFridayDate();
-
-while(nextFriday <= now && nextFriday > lastProc) {
-const amount = c.allowance || 0;
-if(amount > 0) {
-c.saldo += amount;
-c.transactions.unshift({
-date: now.toISOString(),
-amount: amount,
-desc: 'Lommepenge (auto)'
-});
-processed = true;
-}
-// Move to next friday
-const next = new Date(lastProc);
-next.setDate(next.getDate() + 7);
-c.lastProcessed = next.toISOString();
-}
-}
-
-// Check for pending interest
-if(interest.enabled && c.lastInterestPayout) {
-const lastPayout = new Date(c.lastInterestPayout);
-const months = (now.getFullYear() - lastPayout.getFullYear()) * 12 + now.getMonth() - lastPayout.getMonth();
-const freq = interest.freq || 3;
-if(months >= (12/freq)) {
-const periods = Math.floor(months / (12/freq));
-const rate = interest.rate || 2;
-const interestAmount = Math.round(c.saldo * (rate/100) * (periods * (freq/12)));
-if(interestAmount > 0) {
-c.saldo += interestAmount;
-c.transactions.unshift({
-date: now.toISOString(),
-amount: interestAmount,
-desc: `Rente (auto)`
-});
-processed = true;
-}
-c.lastInterestPayout = now.toISOString();
-}
-}
-
-if(!c.lastInterestPayout) {
-c.lastInterestPayout = now.toISOString();
-}
-});
-
-if(processed) {
-save();
-}
-}
-
-function toggleInterest() {
-interest.enabled = !interest.enabled;
-save();
-}
-
-function updateInterest() {
-interest.rate = parseFloat(document.getElementById('interestRate').value) || 0;
-interest.freq = parseInt(document.getElementById('interestFreq').value);
-save();
-}
-
-function showAddChild() { document.getElementById('addChild').classList.remove('hidden'); }
-function hideAddChild() { 
-document.getElementById('addChild').classList.add('hidden');
-document.getElementById('childName').value = '';
-document.getElementById('childBirth').value = '';
-document.getElementById('childAllowance').value = '';
-document.getElementById('allowanceLabel').textContent = '';
-}
-
-function updateDescOptions() {
-const sel = document.getElementById('transDesc');
-const opts = transType === -1 ? NEG_OPTS : POS_OPTS;
-sel.innerHTML = '<option value="">Vælg...</option>';
-opts.forEach(o => { sel.innerHTML += '<option value="'+o+'">'+o+'</option>'; });
-}
-
-function saveChild() {
-const name = document.getElementById('childName').value.trim();
-const birth = document.getElementById('childBirth').value;
-let allowance = parseInt(document.getElementById('childAllowance').value) || 0;
-if(allowance < 0) allowance = 0;
-if(!name) return alert('Indtast et navn!');
-if(!birth) return alert('Vælg en fødselsdato!');
-
-children.push({
-name, 
-birth, 
-age: getAge(birth), 
-allowance, 
-saldo: 0, 
-transactions: [], 
-nextPay: getNextFriday(),
-lastProcessed: new Date().toISOString(),
-lastInterestPayout: new Date().toISOString()
-});
-save();
-hideAddChild();
-}
-
-function showHome() {
-document.getElementById('home').classList.remove('hidden');
-document.getElementById('childDetail').classList.add('hidden');
-currentChild = null;
-render();
-}
-
-function openChild(i) {
-currentChild = i;
-const c = children[i];
-document.getElementById('home').classList.add('hidden');
-document.getElementById('childDetail').classList.remove('hidden');
-document.getElementById('detailName').textContent = c.name;
-document.getElementById('detailAge').textContent = c.age + ' år';
-document.getElementById('detailSaldo').textContent = fmt(c.saldo);
-document.getElementById('nextFriday').textContent = c.nextPay || getNextFriday();
-document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
-updateDescOptions();
-renderTrans();
-}
-
-function setTransType(t) {
-transType = t;
-document.getElementById('btnPlus').className = t === 1 ? 'flex-1 bg-green-500 text-black font-bold py-2 rounded-lg' : 'flex-1 bg-gray-600 font-bold py-2 rounded-lg';
-document.getElementById('btnMinus').className = t === -1 ? 'flex-1 bg-red-500 text-white font-bold py-2 rounded-lg' : 'flex-1 bg-gray-600 font-bold py-2 rounded-lg';
-updateDescOptions();
-}
-
-function addTransaction() {
-const amount = parseInt(document.getElementById('transAmount').value) || 0;
-const desc = document.getElementById('transDesc').value;
-if(!amount) return alert('Indtast et beløb!');
-
-const finalAmount = amount * transType;
-children[currentChild].saldo += finalAmount;
-children[currentChild].transactions.unshift({
-date: new Date().toISOString(),
-amount: finalAmount,
-desc: desc || 'Transaktion'
-});
-children[currentChild].nextPay = getNextFriday();
-save();
-
-document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
-document.getElementById('transAmount').value = '';
-document.getElementById('transDesc').value = '';
-renderTrans();
-}
-
-function renderTrans() {
-const c = children[currentChild];
-const list = document.getElementById('transList');
-list.innerHTML = '';
-c.transactions.forEach((t, idx) => {
-const isNeg = t.amount < 0;
-const desc = t.desc || 'Transaktion';
-const date = new Date(t.date).toLocaleDateString('da-DK');
-list.innerHTML += `
-<div class="bg-gray-700 rounded-lg p-3 trans-row">
-<div class="flex items-center gap-2 flex-1 min-w-0">
-<span class="trans-amount font-semibold ${isNeg ? 'text-red-400' : 'text-green-400'} text-lg">${isNeg ? '' : '+'}${fmt(t.amount)} kr</span>
-<span class="trans-desc text-gray-300 text-sm">${desc}</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="trans-date text-xs text-gray-500">${date}</span>
-<button onclick="confirmDeleteTrans(${idx})" class="text-red-400 text-xs px-2 py-1">✕</button>
-</div>
-</div>
-`;
-});
-}
-
-function changeAllowance(delta) {
-children[currentChild].allowance += delta;
-if(children[currentChild].allowance < 0) children[currentChild].allowance = 0;
-document.getElementById('allowanceAmount').textContent = fmt(children[currentChild].allowance) + ' kr';
-children[currentChild].nextPay = getNextFriday();
-document.getElementById('nextFriday').textContent = children[currentChild].nextPay;
-save();
-}
-
-function confirmDelete() {
-document.getElementById('deleteName').textContent = children[currentChild].name;
-document.getElementById('deleteConfirm').classList.remove('hidden');
-}
-
-function hideDeleteConfirm() {
-document.getElementById('deleteConfirm').classList.add('hidden');
-}
-
-function deleteChild() {
-children.splice(currentChild, 1);
-save();
-hideDeleteConfirm();
-showHome();
-}
-
-function confirmDeleteTrans(idx) {
-deleteTransIndex = idx;
-const t = children[currentChild].transactions[idx];
-document.getElementById('deleteTransAmount').innerHTML = `<span class="${t.amount < 0 ? 'text-red-400' : 'text-green-400'}">${t.amount > 0 ? '+' : ''}${fmt(t.amount)} kr</span>`;
-document.getElementById('deleteTransDesc').textContent = t.desc;
-document.getElementById('deleteTransConfirm').classList.remove('hidden');
-}
-
-function hideDeleteTransConfirm() {
-document.getElementById('deleteTransConfirm').classList.add('hidden');
-deleteTransIndex = null;
-}
-
-function deleteTransaction() {
-if(deleteTransIndex !== null) {
-children[currentChild].saldo -= children[currentChild].transactions[deleteTransIndex].amount;
-children[currentChild].transactions.splice(deleteTransIndex, 1);
-save();
-document.getElementById('detailSaldo').textContent = fmt(children[currentChild].saldo);
-renderTrans();
-}
-hideDeleteTransConfirm();
-}
-
-// Initialize
-let lastSyncTime = 0;
-
-async function init() {
-  if (!familyId) {
-    document.getElementById('setupScreen').classList.remove('hidden');
-    document.getElementById('home').classList.add('hidden');
+function getNextInterestDate(freq){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let year = today.getFullYear();
+  let month = today.getMonth();
+  let dates = [];
+  
+  if (freq == 12) {
+    dates.push(new Date(year, 11, 31));
+  } else if (freq == 3) {
+    dates.push(new Date(year, 2, 31));
+    dates.push(new Date(year, 5, 30));
+    dates.push(new Date(year, 8, 30));
+    dates.push(new Date(year, 11, 31));
   } else {
-    const supabaseData = await syncFromSupabase();
-    if (supabaseData) {
-      children = supabaseData.children || [];
-      interest = supabaseData.interest || {enabled:true,rate:2,freq:3};
+    for (let m = month; m < 12; m++) {
+      let lastDay = new Date(year, m + 1, 0).getDate();
+      dates.push(new Date(year, m, lastDay));
     }
-    // Start realtime sync (check every 3 seconds for changes)
-    setInterval(async () => {
-      const data = await syncFromSupabase();
-      if (data && data._timestamp && data._timestamp > lastSyncTime) {
-        children = data.children || [];
-        interest = data.interest || {enabled:true,rate:2,freq:3};
-        lastSyncTime = data._timestamp;
-        render();
-      }
-    }, 3000);
   }
-  processAutoTransactions();
+  
+  for (let d of dates) {
+    if (d > today) return d;
+  }
+  
+  if (freq == 12) return new Date(year + 1, 11, 31);
+  if (freq == 3) return new Date(year + 1, 2, 31);
+  return new Date(year, month + 1, 1);
+}
+
+function updateNextInterestDisplay(){
+  if (!interest.enabled) {
+    document.getElementById('nextInterestDate').textContent = '';
+    return;
+  }
+  const nextDate = getNextInterestDate(interest.freq);
+  const freqText = interest.freq == 12 ? 'år' : (interest.freq == 3 ? 'kvartal' : 'måned');
+  document.getElementById('nextInterestDate').textContent = 'Næste rente: ' + nextDate.toLocaleDateString('da-DK') + ' (' + interest.rate + '% ' + freqText + ')';
+}
+
+function applyInterest(){
+  if (!interest.enabled) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  if (interest.lastInterest === today) return;
+  
+  const nextDate = getNextInterestDate(interest.freq);
+  const todayDate = new Date();
+  todayDate.setHours(0,0,0,0);
+  
+  if (todayDate >= nextDate) {
+    const rate = interest.rate / 100;
+    
+    children.forEach(c => {
+      if (c.saldo > 0) {
+        const interestAmount = Math.round(c.saldo * rate);
+        if (interestAmount > 0) {
+          c.saldo += interestAmount;
+          c.transactions.unshift({
+            id: generateId(),
+            date: new Date().toISOString(),
+            amount: interestAmount,
+            desc: 'Rente tilskrivning'
+          });
+        }
+      }
+    });
+    
+    interest.lastInterest = today;
+    saveData();
+  }
+}
+
+function updateDescOptions(){
+  const sel = document.getElementById('transDesc');
+  const amount = parseFloat(document.getElementById('transAmount').value) || 0;
+  const isNeg = amount < 0;
+  const opts = isNeg ? NEG_OPTS : POS_OPTS;
+  sel.innerHTML = '<option value="">Vælg...</option>';
+  opts.forEach(o => { sel.innerHTML += '<option value="'+o+'">'+o+'</option>'; });
+}
+
+function toggleMinus(){
+  const input = document.getElementById('transAmount');
+  let val = parseFloat(input.value) || 0;
+  val = -val;
+  input.value = val;
+  updateDescOptions();
+}
+
+document.getElementById('transAmount').addEventListener('input', updateDescOptions);
+
+function render(){
+  const list = document.getElementById('childrenList');
+  list.innerHTML = '';
+  children.forEach((c, i) => {
+    list.innerHTML += '<div onclick="openChild('+i+')" class="bg-gray-800 rounded-xl p-4 flex justify-between items-center btn"><div><div class="font-bold text-lg">'+c.name+'</div><div class="text-sm text-gray-400">'+c.age+' år • '+fmt(c.allowance)+' kr/uge</div></div><div class="text-2xl font-bold '+(c.saldo >= 0 ? 'text-green-400' : 'text-red-400')+'">'+fmt(c.saldo)+' kr</div></div>';
+  });
+  document.getElementById('interestRate').value = interest.rate;
+  document.getElementById('interestFreq').value = interest.freq;
+  document.getElementById('interestToggle').textContent = interest.enabled ? 'SLÅET TIL' : 'SLÅET FRA';
+  document.getElementById('interestToggle').className = interest.enabled ? 'text-green-400 text-sm' : 'text-gray-500 text-sm';
+  document.getElementById('interestSettings').style.display = interest.enabled ? 'flex' : 'none';
+  updateNextInterestDisplay();
+}
+
+function getNextFriday(){
+  const now = new Date();
+  const friday = new Date(now);
+  friday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7);
+  friday.setHours(15,0,0,0);
+  if(friday <= now) friday.setDate(friday.getDate() + 7);
+  return friday.toLocaleDateString('da-DK', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+}
+
+function getAge(birthDate){
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+function toggleInterest(){
+  interest.enabled = !interest.enabled;
+  saveData();
+}
+
+function updateInterest(){
+  interest.rate = parseFloat(document.getElementById('interestRate').value) || 0;
+  interest.freq = parseInt(document.getElementById('interestFreq').value);
+  interest.lastInterest = '';
+  saveData();
+}
+
+function showAddChild(){ 
+  if(isReadOnly) return;
+  document.getElementById('addChild').classList.remove('hidden'); 
+}
+function hideAddChild(){ 
+  document.getElementById('addChild').classList.add('hidden');
+  document.getElementById('childName').value = '';
+  document.getElementById('childAge').value = '';
+  document.getElementById('childAllowance').value = '';
+}
+
+function saveChild(){
+  if(isReadOnly) return;
+  let name = sanitizeName(document.getElementById('childName').value.trim());
+  const birth = document.getElementById('childBirth').value;
+  let allowance = parseInt(document.getElementById('childAllowance').value) || 0;
+  if(allowance < 0) allowance = 0;
+  if(!name) return alert('Indtast et navn!');
+  if(!birth) return alert('Vælg en fødselsdato!');
+
+  const piece = MONOPOLY_PIECES[Math.floor(Math.random() * MONOPOLY_PIECES.length)];
+
+  children.push({
+    id: generateId(),
+    name, 
+    piece,
+    birth, 
+    age: getAge(birth), 
+    allowance, 
+    saldo: 0, 
+    transactions: [], 
+    nextPay: getNextFriday()
+  });
+  saveData();
+  hideAddChild();
+}
+
+function showHome(){
+  document.getElementById('home').classList.remove('hidden');
+  document.getElementById('childDetail').classList.add('hidden');
+  document.getElementById('setupScreen').classList.add('hidden');
+  currentChild = null;
   render();
 }
+
+function openChild(i){
+  currentChild = i;
+  const c = children[i];
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('childDetail').classList.remove('hidden');
+  document.getElementById('detailPiece').textContent = c.piece || '🎯';
+  document.getElementById('detailName').textContent = c.name;
+  document.getElementById('detailAge').textContent = c.age + ' år';
+  document.getElementById('detailSaldo').textContent = fmt(c.saldo);
+  document.getElementById('nextFriday').textContent = c.nextPay;
+  document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
+  updateDescOptions();
+  renderTrans();
+}
+
+function addTransaction(){
+  if(isReadOnly) return;
+  let amount = parseFloat(document.getElementById('transAmount').value) || 0;
+  const desc = document.getElementById('transDesc').value.trim() || 'Transaktion';
+  if(amount === 0) return alert('Indtast et beløb!');
+
+  children[currentChild].saldo += amount;
+  children[currentChild].transactions.unshift({
+    id: generateId(),
+    date: new Date().toISOString(),
+    amount: amount,
+    desc: desc
+  });
+  children[currentChild].nextPay = getNextFriday();
+  saveData();
+
+  document.getElementById('detailSaldo').textContent = children[currentChild].saldo;
+  document.getElementById('transAmount').value = '';
+  document.getElementById('transDesc').value = '';
+  renderTrans();
+}
+
+function showDeleteTransConfirm(idx){
+  if(isReadOnly) return;
+  deleteTransIndex = idx;
+  document.getElementById('deleteTransConfirm').classList.remove('hidden');
+}
+
+function hideDeleteTransConfirm(){
+  deleteTransIndex = null;
+  document.getElementById('deleteTransConfirm').classList.add('hidden');
+}
+
+function confirmDeleteTransaction(){
+  if (deleteTransIndex === null || isReadOnly) return;
+  const c = children[currentChild];
+  c.saldo -= c.transactions[deleteTransIndex].amount;
+  c.transactions.splice(deleteTransIndex, 1);
+  saveData();
+  document.getElementById('detailSaldo').textContent = fmt(c.saldo);
+  hideDeleteTransConfirm();
+  renderTrans();
+}
+
+function renderTrans(){
+  const c = children[currentChild];
+  const list = document.getElementById('transList');
+  list.innerHTML = '';
+  c.transactions.forEach((t, idx) => {
+    const isNeg = t.amount < 0;
+    const transDate = new Date(t.date).toLocaleDateString('da-DK', {day:'numeric', month:'short'});
+    const deleteBtn = isReadOnly ? '' : '<button onclick="showDeleteTransConfirm('+idx+')" class="text-red-400 text-xs px-2 py-1">✕</button>';
+    list.innerHTML += '<div class="bg-gray-700 rounded-lg p-3 flex justify-between items-center"><div class="font-semibold '+(isNeg ? 'text-red-400' : 'text-green-400')+' w-20">'+(t.amount > 0 ? '+' : '')+t.amount+' kr</div><div class="flex-1 text-center text-sm text-gray-400">'+t.desc+'</div><div class="text-xs text-gray-500 w-20 text-right">'+transDate+deleteBtn+'</div></div>';
+  });
+}
+
+function changeAllowance(delta){
+  if(isReadOnly) return;
+  children[currentChild].allowance += delta;
+  if(children[currentChild].allowance < 0) children[currentChild].allowance = 0;
+  document.getElementById('allowanceAmount').textContent = fmt(children[currentChild].allowance) + ' kr';
+  children[currentChild].nextPay = getNextFriday();
+  document.getElementById('nextFriday').textContent = children[currentChild].nextPay;
+  saveData();
+}
+
+function confirmDelete(){
+  if(isReadOnly) return;
+  document.getElementById('deleteName').textContent = children[currentChild].name;
+  document.getElementById('deleteConfirm').classList.remove('hidden');
+}
+
+function hideDeleteConfirm(){
+  document.getElementById('deleteConfirm').classList.add('hidden');
+}
+
+function deleteChild(){
+  if(isReadOnly) return;
+  children.splice(currentChild, 1);
+  saveData();
+  hideDeleteConfirm();
+  showHome();
+}
+
+function showShareModal(){
+  document.getElementById('shareModal').classList.remove('hidden');
+  document.getElementById('shareCode').textContent = parentToken;
+  const shareUrl = window.location.origin + window.location.pathname + '?p=' + parentToken;
+  document.getElementById('qrParent').innerHTML = '';
+  QRCode.toCanvas(document.createElement('canvas'), shareUrl, {width:150}, function(err, canvas) {
+    if(!err) document.getElementById('qrParent').appendChild(canvas);
+  });
+}
+
+function hideShareModal(){
+  document.getElementById('shareModal').classList.add('hidden');
+}
+
+function copyShareLink(){
+  const shareUrl = window.location.origin + window.location.pathname + '?p=' + parentToken;
+  navigator.clipboard.writeText(shareUrl);
+  alert('Link kopieret!');
+}
+
+function showChildQR(){
+  const c = children[currentChild];
+  document.getElementById('childQRName').textContent = c.name;
+  document.getElementById('childQRModal').classList.remove('hidden');
+  const childUrl = window.location.origin + window.location.pathname + '?f=' + familyId + '&c=' + c.id;
+  document.getElementById('qrChild').innerHTML = '';
+  QRCode.toCanvas(document.createElement('canvas'), childUrl, {width:150}, function(err, canvas) {
+    if(!err) document.getElementById('qrChild').appendChild(canvas);
+  });
+}
+
+function hideChildQRModal(){
+  document.getElementById('childQRModal').classList.add('hidden');
+}
+
+function copyChildLink(){
+  const c = children[currentChild];
+  const childUrl = window.location.origin + window.location.pathname + '?f=' + familyId + '&c=' + c.id;
+  navigator.clipboard.writeText(childUrl);
+  alert('Link kopieret!');
+}
+
+function togglePieceMenu(){
+  document.getElementById('pieceMenu').classList.toggle('hidden');
+  const menu = document.getElementById('pieceMenu');
+  if(menu.children.length === 0){
+    MONOPOLY_PIECES.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'text-3xl p-2 hover:bg-gray-700 rounded';
+      btn.textContent = p;
+      btn.onclick = () => selectPiece(p);
+      menu.appendChild(btn);
+    });
+  }
+}
+
+function selectPiece(piece){
+  if (!viewFamily || !viewChild) return;
+  const saved = localStorage.getItem('bornbank_' + viewFamily);
+  if (saved) {
+    const data = JSON.parse(saved);
+    const child = data.children.find(c => c.id === viewChild);
+    if (child) {
+      child.piece = piece;
+      localStorage.setItem('bornbank_' + viewFamily, JSON.stringify(data));
+      document.getElementById('childPieceDisplay').textContent = piece;
+      document.getElementById('pieceMenu').classList.add('hidden');
+    }
+  }
+}
+
+function loadChildView(){
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('childDetail').classList.add('hidden');
+  document.getElementById('setupScreen').classList.add('hidden');
+
+  const saved = localStorage.getItem('bornbank_' + viewFamily);
+  if (!saved) {
+    document.body.innerHTML = '<div class="p-4 text-center"><h1 class="text-2xl font-bold mb-4">Ikke fundet</h1><p class="text-gray-400">Denne familie findes ikke eller er blevet slettet.</p></div>';
+    return;
+  }
+
+  const data = JSON.parse(saved);
+  const child = data.children.find(c => c.id === viewChild);
+
+  if (!child) {
+    document.body.innerHTML = '<div class="p-4 text-center"><h1 class="text-2xl font-bold mb-4">Ikke fundet</h1><p class="text-gray-400">Barnet blev ikke fundet.</p></div>';
+    return;
+  }
+
+  document.getElementById('childView').classList.remove('hidden');
+  document.getElementById('childPieceDisplay').textContent = child.piece || '🎯';
+  document.getElementById('childViewName').textContent = child.name;
+  document.getElementById('childViewSaldo').textContent = fmt(child.saldo);
+
+  shownTransIds = new Set();
+  renderChildTrans(child);
+}
+
+function renderChildTrans(child){
+  const list = document.getElementById('childViewTrans');
+  list.innerHTML = '';
+  child.transactions.forEach(t => {
+    shownTransIds.add(t.id);
+    const isNeg = t.amount < 0;
+    const transDate = new Date(t.date).toLocaleDateString('da-DK', {day:'numeric', month:'short'});
+    list.innerHTML += '<div class="bg-gray-800 rounded-lg p-3 flex justify-between"><div><div class="font-semibold '+(isNeg ? 'text-red-400' : 'text-green-400')+'">'+(t.amount > 0 ? '+' : '')+t.amount+' kr</div><div class="text-sm text-gray-400">'+t.desc+'</div></div><div class="text-xs text-gray-500">'+transDate+'</div></div>';
+  });
+}
+
+if (viewFamily && viewChild){
+  setInterval(() => {
+    const saved = localStorage.getItem('bornbank_' + viewFamily);
+    if (saved) {
+      const data = JSON.parse(saved);
+      const child = data.children.find(c => c.id === viewChild);
+      if (child) {
+        document.getElementById('childViewSaldo').textContent = fmt(child.saldo);
+        renderChildTrans(child);
+      }
+    }
+  }, 30000);
+}
+
+applyInterest();
 init();
 </script>
 </body>
