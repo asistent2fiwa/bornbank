@@ -305,6 +305,7 @@ async function loadData(){
   if (supabaseData) {
     children = supabaseData.children || [];
     interest = supabaseData.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
+    localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest}));
   } else {
     // Fallback to localStorage
     const saved = localStorage.getItem('bornbank_' + familyId);
@@ -315,13 +316,14 @@ async function loadData(){
     }
   }
   document.getElementById('familyCodeDisplay').textContent = 'Familie: ' + familyId;
-  // Start realtime sync
+  // Start realtime sync every 3 seconds
   setInterval(async () => {
     const data = await syncFromSupabase();
     if (data && data._timestamp && data._timestamp > lastSyncTime) {
       children = data.children || [];
       interest = data.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
       lastSyncTime = data._timestamp;
+      localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest}));
       render();
     }
   }, 3000);
@@ -769,10 +771,10 @@ function renderChildTrans(child){
 }
 
 if (viewFamily && viewChild){
-  setInterval(() => {
-    const saved = localStorage.getItem('bornbank_' + viewFamily);
-    if (saved) {
-      const data = JSON.parse(saved);
+  // Sync from Supabase every 30 seconds for child view
+  setInterval(async () => {
+    const data = await syncFromSupabase();
+    if (data && data.children) {
       const child = data.children.find(c => c.id === viewChild);
       if (child) {
         document.getElementById('childViewSaldo').textContent = fmt(child.saldo);
