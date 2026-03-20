@@ -297,7 +297,7 @@ let shownTransIds = new Set();
 const POS_OPTS = ['Pligter','Gave','Andet'];
 const NEG_OPTS = ['Tøj','Underholdning','Andet'];
 
-function init(){
+async function init(){
   let touchStartX = 0;
   document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
   document.addEventListener('touchend', e => {
@@ -325,7 +325,7 @@ function init(){
     document.getElementById('setupScreen').classList.remove('hidden');
     document.getElementById('home').classList.add('hidden');
   } else {
-    loadData();
+    await loadData();
     showHome();
   }
 }
@@ -394,7 +394,7 @@ function createFamily(){
   showHome();
 }
 
-function joinFamily(){
+async function joinFamily(){
   const code = document.getElementById('joinCode').value.trim();
   if (code.length < 6) return alert('Ugyldig kode');
   
@@ -403,7 +403,7 @@ function joinFamily(){
   localStorage.setItem('bornbank_family', familyId);
   localStorage.setItem('bornbank_parent', parentToken);
   
-  loadData();
+  await loadData();
   document.getElementById('setupScreen').classList.add('hidden');
   showHome();
 }
