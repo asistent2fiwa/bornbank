@@ -159,7 +159,7 @@ let parentToken = localStorage.getItem('bornbank_parent');
 
 async function syncToSupabase() {
   if (!familyId) return;
-  const data = {children, interest};
+  const data = {children, interest, _timestamp: Date.now()};
   try {
     await fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId, {
       method: 'PUT',
@@ -198,11 +198,12 @@ async function createFamily() {
     await fetch(SUPABASE_URL + '/rest/v1/families', {
       method: 'POST',
       headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
-      body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify({children, interest})})
+      body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify({children, interest, _timestamp: Date.now()})})
     });
   } catch(e) { console.log('Create error:', e); }
   document.getElementById('setupScreen').classList.add('hidden');
   document.getElementById('home').classList.remove('hidden');
+  location.reload();
 }
 
 function joinFamily() {
@@ -519,6 +520,8 @@ hideDeleteTransConfirm();
 }
 
 // Initialize
+let lastSyncTime = 0;
+
 async function init() {
   if (!familyId) {
     document.getElementById('setupScreen').classList.remove('hidden');
@@ -529,6 +532,16 @@ async function init() {
       children = supabaseData.children || [];
       interest = supabaseData.interest || {enabled:true,rate:2,freq:3};
     }
+    // Start realtime sync (check every 3 seconds for changes)
+    setInterval(async () => {
+      const data = await syncFromSupabase();
+      if (data && data._timestamp && data._timestamp > lastSyncTime) {
+        children = data.children || [];
+        interest = data.interest || {enabled:true,rate:2,freq:3};
+        lastSyncTime = data._timestamp;
+        render();
+      }
+    }, 3000);
   }
   processAutoTransactions();
   render();
