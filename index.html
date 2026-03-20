@@ -39,7 +39,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <div id="home">
 <div class="flex justify-between items-center mb-6">
-<h1 class="text-2xl font-bold">🐷 Børnebank</h1>
+<span class="text-2xl font-bold text-gray-500"></span>
 <button onclick="showShareModal()" class="text-green-400 text-sm">Del ↗</button>
 </div>
 
@@ -67,6 +67,10 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 <p id="nextInterestDate" class="text-xs text-gray-500 mt-2"></p>
 </div>
+
+<div class="mt-8 text-center text-gray-500">
+<span class="text-2xl">🐷</span> <span class="text-lg font-bold">Børnebank</span>
+</div>
 </div>
 
 <div id="addChild" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
@@ -91,17 +95,9 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <button onclick="showChildQR()" class="text-green-400 text-sm">Del ↗</button>
 </div>
 
-<div class="flex items-center gap-3 mb-2">
-<span id="detailPiece" class="text-4xl"></span>
-<span id="detailName" class="text-3xl font-bold"></span>
-<span id="detailAge" class="text-gray-400 text-xl"></span>
-</div>
-
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<span id="detailPiece2" class="text-5xl block mb-2"></span>
-<span id="detailName2" class="text-2xl font-bold block"></span>
-<span id="detailAge2" class="text-gray-400 text-lg block mb-4"></span>
-<p class="text-5xl font-bold text-green-400"><span id="detailSaldo">0</span> kr</p>
+<p><span id="detailPiece2" class="text-4xl"></span> <span id="detailName2" class="text-2xl font-bold"></span> <span id="detailAge2" class="text-gray-400 text-lg"></span></p>
+<p class="text-5xl font-bold text-green-400 mt-2"><span id="detailSaldo">0</span> kr</p>
 <p class="text-sm text-gray-500 mt-2">Næste lommepenge: <span id="nextFriday"></span></p>
 </div>
 
@@ -202,9 +198,8 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <h3 class="font-semibold mb-3 text-left">Seneste transaktioner</h3>
 <div id="childViewTrans" class="space-y-2 mb-6"></div>
 
-<div class="border-t border-gray-700 pt-4">
-<p class="text-2xl mb-2">🐷</p>
-<p class="text-xs text-gray-500">Børnebank</p>
+<div class="border-t border-gray-700 pt-4 mt-4 text-center">
+<span class="text-2xl">🐷</span> <span class="text-lg font-bold">Børnebank</span>
 </div>
 </div>
 
