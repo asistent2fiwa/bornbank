@@ -93,14 +93,16 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <div class="flex items-center gap-3 mb-2">
 <span id="detailPiece" class="text-4xl"></span>
-<h1 id="detailName" class="text-3xl font-bold"></h1>
+<span id="detailName" class="text-3xl font-bold"></span>
 <span id="detailAge" class="text-gray-400 text-xl"></span>
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<p class="text-sm text-gray-400 mb-1">Saldo</p>
-<p class="text-5xl font-bold text-green-400 mb-2"><span id="detailSaldo">0</span> kr</p>
-<p class="text-sm text-gray-500">Næste lommepenge: <span id="nextFriday"></span></p>
+<span id="detailPiece2" class="text-5xl block mb-2"></span>
+<span id="detailName2" class="text-2xl font-bold block"></span>
+<span id="detailAge2" class="text-gray-400 text-lg block mb-4"></span>
+<p class="text-5xl font-bold text-green-400"><span id="detailSaldo">0</span> kr</p>
+<p class="text-sm text-gray-500 mt-2">Næste lommepenge: <span id="nextFriday"></span></p>
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-4 mb-4">
@@ -536,7 +538,7 @@ function saveChild(){
   if(!name) return alert('Indtast et navn!');
   if(!birth) return alert('Vælg en fødselsdato!');
 
-  const piece = MONOPOLY_PIECES[Math.floor(Math.random() * MONOPOLY_PIECES.length)];
+  const piece = MONOPOLY_PIECES[children.length % MONOPOLY_PIECES.length];
 
   children.push({
     id: generateId(),
@@ -567,8 +569,11 @@ function openChild(i){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('childDetail').classList.remove('hidden');
   document.getElementById('detailPiece').textContent = c.piece || '🎯';
+  document.getElementById('detailPiece2').textContent = c.piece || '🎯';
   document.getElementById('detailName').textContent = c.name;
+  document.getElementById('detailName2').textContent = c.name;
   document.getElementById('detailAge').textContent = c.age + ' år';
+  document.getElementById('detailAge2').textContent = c.age + ' år';
   document.getElementById('detailSaldo').textContent = fmt(c.saldo);
   document.getElementById('nextFriday').textContent = c.nextPay;
   document.getElementById('allowanceAmount').textContent = fmt(c.allowance) + ' kr';
