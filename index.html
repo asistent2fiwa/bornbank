@@ -22,6 +22,8 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </head>
 <body class="p-4">
 
+<div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50"></div>
+
 <div id="setupScreen" class="hidden">
 <div class="text-center mb-8">
 <span class="text-3xl font-bold">🐷 Børnebank</span>
@@ -272,7 +274,10 @@ async function syncToSupabase() {
         body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify(data)})
       });
     }
-  } catch(e) { console.log('Sync error:', e); }
+  } catch(e) { 
+    console.log('Sync error:', e); 
+    showToast('Kunne ikke gemme - tjek internetforbindelse', 'error');
+  }
 }
 
 async function syncFromSupabase() {
@@ -283,7 +288,10 @@ async function syncFromSupabase() {
     });
     const rows = await res.json();
     if (rows && rows[0] && rows[0].data) return JSON.parse(rows[0].data);
-  } catch(e) { console.log('Load error:', e); }
+  } catch(e) { 
+    console.log('Load error:', e); 
+    showToast('Kunne ikke hente data - prøv igen', 'error');
+  }
   return null;
 }
 
@@ -311,7 +319,9 @@ async function createFamilyInSupabase() {
       headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
       body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify(data)})
     });
-  } catch(e) { console.log('Create error:', e); }
+  } catch(e) { 
+    console.log('Create error:', e); 
+  }
 }
 
 let currentChild = null;
@@ -402,6 +412,14 @@ function saveData(){
   lastSyncTime = Date.now();
   syncToSupabase();
   render();
+}
+
+function showToast(message, type = 'error') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg z-50 ' + (type === 'error' ? 'bg-red-500' : 'bg-green-500');
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
 function generateId(){
