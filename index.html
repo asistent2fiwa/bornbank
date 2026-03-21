@@ -287,6 +287,22 @@ async function syncFromSupabase() {
   return null;
 }
 
+// Merge server data with local data ( smarter sync)
+function mergeData(local, server) {
+  if (!server) return local;
+  if (!local) return server;
+  
+  const merged = JSON.parse(JSON.stringify(server)); // Deep copy
+  
+  // If server is older, keep local
+  if (server._timestamp && local._timestamp && local._timestamp > server._timestamp) {
+    return local;
+  }
+  
+  // Otherwise use server data (for now - simple approach)
+  return merged;
+}
+
 async function createFamilyInSupabase() {
   const data = {children: [], interest: {enabled:true, rate:2, freq:3, lastInterest:''}};
   try {
@@ -340,30 +356,40 @@ async function init(){
 }
 
 async function loadData(){
-  // Try Supabase first
+  // Get local data first
+  const saved = localStorage.getItem('bornbank_' + familyId);
+  let localData = saved ? JSON.parse(saved) : null;
+  
+  // Try Supabase 
   const supabaseData = await syncFromSupabase();
+  
+  // Merge data - prefer newer
   if (supabaseData) {
-    children = supabaseData.children || [];
-    interest = supabaseData.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
-    localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest}));
-  } else {
-    // Fallback to localStorage
-    const saved = localStorage.getItem('bornbank_' + familyId);
-    if (saved) {
-      const data = JSON.parse(saved);
-      children = data.children || [];
-      interest = data.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
+    if (!localData || (supabaseData._timestamp && supabaseData._timestamp > (localData._timestamp || 0))) {
+      children = supabaseData.children || [];
+      interest = supabaseData.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
+      localData = {children, interest, _timestamp: supabaseData._timestamp};
+    } else if (localData) {
+      children = localData.children || [];
+      interest = localData.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
     }
+  } else if (localData) {
+    children = localData.children || [];
+    interest = localData.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
   }
+  
+  localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest, _timestamp: Date.now()}));
   document.getElementById('familyCodeDisplay').textContent = 'Familie: ' + familyId;
+  
   // Start realtime sync every 3 seconds
   setInterval(async () => {
     const data = await syncFromSupabase();
     if (data && data._timestamp && data._timestamp > lastSyncTime) {
+      // Only update if server is newer
       children = data.children || [];
       interest = data.interest || {enabled:true,rate:2,freq:3,lastInterest:""};
       lastSyncTime = data._timestamp;
-      localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest}));
+      localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest, _timestamp: lastSyncTime}));
       render();
     }
   }, 3000);
@@ -483,6 +509,7 @@ function applyInterest(){
           c.transactions.unshift({
             id: generateId(),
             date: new Date().toISOString(),
+            timestamp: Date.now(),
             amount: interestAmount,
             desc: 'Rente tilskrivning'
           });
@@ -630,6 +657,7 @@ function addTransaction(){
   children[currentChild].transactions.unshift({
     id: generateId(),
     date: new Date().toISOString(),
+    timestamp: Date.now(),
     amount: amount,
     desc: desc
   });
