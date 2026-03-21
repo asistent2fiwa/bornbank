@@ -258,11 +258,20 @@ async function syncToSupabase() {
   if (!familyId) return;
   const data = {children, interest, _timestamp: Date.now()};
   try {
-    await fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId, {
+    // Try PUT first (update)
+    const res = await fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId, {
       method: 'PUT',
       headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
       body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify(data)})
     });
+    if (res.status === 404) {
+      // Not found, create new
+      await fetch(SUPABASE_URL + '/rest/v1/families', {
+        method: 'POST',
+        headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json'},
+        body: JSON.stringify({id: familyId, parent_token: parentToken, data: JSON.stringify(data)})
+      });
+    }
   } catch(e) { console.log('Sync error:', e); }
 }
 
