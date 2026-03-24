@@ -24,6 +24,13 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 
 <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50"></div>
 
+<div id="loader" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+<div class="bg-gray-800 rounded-2xl p-6 text-center">
+<div class="animate-spin text-4xl mb-3">⏳</div>
+<p class="text-gray-300">Henter data...</p>
+</div>
+</div>
+
 <div id="setupScreen" class="hidden">
 <div class="text-center mb-8">
 <span class="text-3xl font-bold">🐷 Børnebank</span>
@@ -366,6 +373,7 @@ async function init(){
 }
 
 async function loadData(){
+  showLoader();
   // Get local data first
   const saved = localStorage.getItem('bornbank_' + familyId);
   let localData = saved ? JSON.parse(saved) : null;
@@ -404,6 +412,7 @@ async function loadData(){
     }
   }, 3000);
   render();
+  hideLoader();
 }
 
 function saveData(){
@@ -420,6 +429,16 @@ function showToast(message, type = 'error') {
   toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg z-50 ' + (type === 'error' ? 'bg-red-500' : 'bg-green-500');
   toast.classList.remove('hidden');
   setTimeout(() => toast.classList.add('hidden'), 3000);
+}
+
+function showLoader(msg = 'Henter data...') {
+  const loader = document.getElementById('loader');
+  loader.querySelector('p').textContent = msg;
+  loader.classList.remove('hidden');
+}
+
+function hideLoader() {
+  document.getElementById('loader').classList.add('hidden');
 }
 
 function generateId(){
@@ -456,6 +475,7 @@ async function joinFamily(){
   localStorage.setItem('bornbank_family', familyId);
   localStorage.setItem('bornbank_parent', parentToken);
   
+  showLoader('Tilslutter familie...');
   await loadData();
   document.getElementById('setupScreen').classList.add('hidden');
   showHome();
