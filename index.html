@@ -15,7 +15,9 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 *{font-family:'Outfit',system-ui,sans-serif}
-body{background:#0f0f14;color:#fff;min-height:100vh}
+body{background:var(--bg-color);color:var(--text-color);min-height:100vh}
+body.light{--bg-color:#f5f5f5;--text-color:#1a1a1a;--card-bg:#e0e0e0;--card-text:#1a1a1a}
+body.dark,body{--bg-color:#0f0f14;--text-color:#fff;--card-bg:#1f1f28;--card-text:#fff}
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
 </style>
@@ -362,6 +364,10 @@ const POS_OPTS = ['Pligter','Gave','Andet'];
 const NEG_OPTS = ['Tøj','Underholdning','Andet'];
 
 async function init(){
+  // Load theme
+  const savedTheme = localStorage.getItem('bornbank_theme');
+  if (savedTheme === 'light') document.body.classList.add('light');
+  
   let touchStartX = 0;
   document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
   document.addEventListener('touchend', e => {
@@ -811,6 +817,10 @@ function showMenu(){
   const menuOptions = document.getElementById('menuOptions');
   let html = '';
   
+  // Theme toggle
+  const isLight = document.body.classList.contains('light');
+  html += '<button onclick="toggleTheme();hideMenu();" class="w-full bg-gray-700 text-white py-3 rounded-lg mb-2">' + (isLight ? '🌓' : '🌙') + ' ' + (isLight ? 'Mørkt tema' : 'Lyst tema') + '</button>';
+  
   if (isReadOnly) {
     // Child view menu
     html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
@@ -823,6 +833,12 @@ function showMenu(){
   
   menuOptions.innerHTML = html;
   document.getElementById('menuModal').classList.remove('hidden');
+}
+
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  localStorage.setItem('bornbank_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  showToast(document.body.classList.contains('light') ? 'Lyst tema' : 'Mørkt tema', 'success');
 }
 
 function hideMenu(){
