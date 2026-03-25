@@ -15,17 +15,45 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 *{font-family:'Outfit',system-ui,sans-serif}
-body{background:#f9fafb;color:#111827;min-height:100vh}
-.dark body,body{background:#0f0f14;color:#fff}
+body{min-height:100vh}
 
-/* Light mode overrides */
-body.light{background:#f9fafb;color:#111827}
-body.light .bg-gray-800,body.light .bg-gray-700,body.light .bg-gray-900{background:#e5e7eb}
-body.light .bg-gray-600{background:#d1d5db}
-body.light .bg-gray-500{background:#9ca3af}
-body.light .text-gray-400,.dark body .text-gray-400{color:#6b7280}
-body.light .text-gray-500{color:#4b5563}
-body.light .text-white{color:#111827}
+/* Default light theme */
+body,body.theme-light{background:#f9fafb;color:#111827}
+body.theme-light .bg-gray-800,body.theme-light .bg-gray-700{background:#e5e7eb}
+body.theme-light .bg-gray-600{background:#d1d5db}
+body.theme-light .text-gray-400{color:#6b7280}
+body.theme-light .text-white{color:#111827}
+body.theme-light .bg-green-500{background:#22c55e}
+body.theme-light .bg-red-500{background:#ef4444}
+body.theme-light .bg-blue-500{background:#3b82f6}
+
+/* Dark theme */
+body.theme-dark{background:#0f0f14;color:#fff}
+body.theme-dark .bg-gray-800{background:#1f1f28}
+body.theme-dark .bg-gray-700{background:#2d2d3a}
+body.theme-dark .bg-gray-900{background:#18181f}
+body.theme-dark .text-gray-400{color:#9ca3af}
+body.theme-dark .text-white{color:#fff}
+
+/* Blue theme */
+body.theme-blue{background:#0c1929;color:#e0f2fe}
+body.theme-blue .bg-gray-800{background:#1e3a5f}
+body.theme-blue .bg-gray-700{background:#234e6f}
+body.theme-blue .bg-gray-900{background:#0a1520}
+body.theme-blue .text-gray-400{color:#7dd3fc}
+body.theme-blue .text-white{color:#e0f2fe}
+body.theme-blue .bg-green-500{background:#22c55e}
+body.theme-blue .bg-red-500{background:#f87171}
+
+/* Nature theme */
+body.theme-nature{background:#f0fdf4;color:#14532d}
+body.theme-nature .bg-gray-800{background:#bbf7d0}
+body.theme-nature .bg-gray-700{background:#86efac}
+body.theme-nature .text-gray-400{color:#166534}
+body.theme-nature .text-white{color:#14532d}
+body.theme-nature .bg-green-500{background:#16a34a}
+body.theme-nature .bg-red-500{background:#dc2626}
+
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
 </style>
@@ -373,9 +401,8 @@ const NEG_OPTS = ['Tøj','Underholdning','Andet'];
 
 async function init(){
   // Load theme - default to light if not set
-  const savedTheme = localStorage.getItem('bornbank_theme');
-  if (savedTheme === 'dark') document.body.classList.add('dark');
-  else document.body.classList.remove('dark'); // default to light
+  const savedTheme = localStorage.getItem('bornbank_theme') || 'light';
+  document.body.classList.add('theme-' + savedTheme);
   
   let touchStartX = 0;
   document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
@@ -844,10 +871,16 @@ function showMenu(){
   document.getElementById('menuModal').classList.remove('hidden');
 }
 
+const themes = ['light', 'dark', 'blue', 'nature'];
+const themeNames = {'light': '⚪️ Lys', 'dark': '⚫️ Mørk', 'blue': '🔵 Blå', 'nature': '🟢 Natur'};
+
 function toggleTheme(){
-  document.body.classList.toggle('dark');
-  localStorage.setItem('bornbank_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-  showToast(document.body.classList.contains('dark') ? 'Mørkt tema' : 'Lyst tema', 'success');
+  const current = themes.find(t => document.body.classList.contains('theme-' + t)) || 'light';
+  const idx = themes.indexOf(current);
+  const next = themes[(idx + 1) % themes.length];
+  document.body.className = 'theme-' + next;
+  localStorage.setItem('bornbank_theme', next);
+  showToast(themeNames[next], 'success');
 }
 
 function hideMenu(){
