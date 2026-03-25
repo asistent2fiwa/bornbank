@@ -100,10 +100,10 @@ body.theme-honey .bubble{
 .btn:active{transform:scale(0.95)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
 
-/* Page transitions */
-#home,#childDetail,#setupScreen,#childView{transition:opacity 0.5s ease,transform 0.5s ease}
-.page-hidden{opacity:0;transform:scale(0.97);pointer-events:none}
-.page-visible{opacity:1;transform:scale(1)}
+/* Page transitions - disabled for better performance */
+/*#home,#childDetail,#setupScreen,#childView{transition:opacity 0.3s ease,transform 0.3s ease}
+.page-hidden{opacity:0;transform:scale(0.98);pointer-events:none}
+.page-visible{opacity:1;transform:scale(1)}*/
 
 /* Animated floating bubbles */
 .bubbles-container{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:0}
@@ -821,28 +821,18 @@ function saveChild(){
 }
 
 function showHome(){
-  const home=document.getElementById('home'),detail=document.getElementById('childDetail');
-  detail.classList.add('page-hidden');
-  setTimeout(()=>{
-    detail.classList.add('hidden');
-    home.classList.remove('hidden');
-    home.classList.add('page-visible');
-  },500);
+  document.getElementById('home').classList.remove('hidden');
+  document.getElementById('childDetail').classList.add('hidden');
   document.getElementById('setupScreen').classList.add('hidden');
   currentChild = null;
   render();
 }
 
 function openChild(i){
-  const home=document.getElementById('home'),detail=document.getElementById('childDetail');
-  home.classList.add('page-hidden');
-  setTimeout(()=>{
-    home.classList.add('hidden');
-    detail.classList.remove('hidden');
-    detail.classList.add('page-visible');
-  },500);
   currentChild = i;
   const c = children[i];
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('childDetail').classList.remove('hidden');
   document.getElementById('detailPiece').textContent = c.piece || '🎯';
   document.getElementById('detailName').textContent = c.name;
   document.getElementById('detailAge').textContent = c.age + ' år';
