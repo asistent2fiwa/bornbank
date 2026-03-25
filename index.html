@@ -92,7 +92,6 @@ body.theme-honey .bubbles-container{background:radial-gradient(ellipse at 50% -1
 body.theme-honey .bubble{
   background:radial-gradient(circle at 35% 35%, rgba(255,255,200,0.9), rgba(255,180,50,0.6) 50%, rgba(230,120,20,0.4));
   box-shadow:0 0 20px rgba(255,180,50,0.5), 0 0 40px rgba(255,150,0,0.3), inset 0 -5px 20px rgba(255,255,255,0.3), inset 0 5px 15px rgba(255,200,100,0.4);
-  animation-duration:20s,35s,45s,55s,30s,40s,50s,25s,60s,33s,42s,55s,28s,38s,48s,22s!important;
   backdrop-filter:blur(2px);
 }
 
@@ -107,7 +106,7 @@ body.theme-honey .bubble{
 
 /* Animated floating bubbles */
 .bubbles-container{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:0}
-.bubble{position:absolute;bottom:-100px;border-radius:50%;opacity:0.6;animation:float-up linear infinite}
+.bubble{position:absolute;bottom:-100px;border-radius:50%;opacity:0.6;animation:float-up 25s linear infinite}
 @keyframes float-up{0%{transform:translateY(0) scale(1);opacity:0.6}50%{opacity:0.4}100%{transform:translateY(-110vh) scale(0.8);opacity:0}}
 
 /* Golden bubbles for light/soft themes */
