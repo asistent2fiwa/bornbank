@@ -120,6 +120,7 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 <body class="p-4">
 <div id="bubbles" class="bubbles-container"></div>
 <div id="splashOverlay" class="splash-overlay"></div>
+<div id="themeToggle" onclick="toggleTheme()" style="position:fixed;bottom:20px;right:20px;background:rgba(128,128,128,0.8);backdrop-filter:blur(8px);color:white;padding:10px 16px;border-radius:50px;font-size:20px;cursor:pointer;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:all 0.3s" title="Skift tema"></div>
 
 <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50"></div>
 
@@ -470,6 +471,7 @@ async function init(){
   // Load theme - default to light if not set
   const savedTheme = localStorage.getItem('bornbank_theme') || 'light';
   document.body.classList.add('theme-' + savedTheme);
+  updateThemeButton();
   
   let touchStartX = 0;
   document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
@@ -920,10 +922,6 @@ function showMenu(){
   const menuOptions = document.getElementById('menuOptions');
   let html = '';
   
-  // Theme toggle
-  const isDark = document.body.classList.contains('dark');
-  html += '<button onclick="toggleTheme();hideMenu();" class="w-full bg-gray-200 text-gray-800 py-3 rounded-lg mb-2">' + (isDark ? '☀️' : '🌙') + ' ' + (isDark ? 'Lyst tema' : 'Mørkt tema') + '</button>';
-  
   if (isReadOnly) {
     // Child view menu
     html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
@@ -945,6 +943,7 @@ function showMenu(){
 
 const themes = ['light', 'dark', 'soft', 'blue', 'nature', 'honey'];
 const themeNames = {'light': '⚪️ Lys', 'dark': '⚫️ Mørk', 'soft': '🩵 Soft', 'blue': '🔵 Blå', 'nature': '🟢 Natur', 'honey': '🍯 Honning'};
+const themeIcons = {'light': '☀️', 'dark': '🌙', 'soft': '🩵', 'blue': '🔵', 'nature': '🟢', 'honey': '🍯'};
 
 function toggleTheme(){
   const current = themes.find(t => document.body.classList.contains('theme-' + t)) || 'light';
@@ -953,7 +952,14 @@ function toggleTheme(){
   document.body.className = 'theme-' + next;
   localStorage.setItem('bornbank_theme', next);
   createBubbles();
+  updateThemeButton();
   showToast(themeNames[next], 'success');
+}
+
+function updateThemeButton(){
+  const current = themes.find(t => document.body.classList.contains('theme-' + t)) || 'light';
+  const btn=document.getElementById('themeToggle');
+  if(btn)btn.textContent=themeIcons[current];
 }
 
 function hideMenu(){
@@ -1162,6 +1168,50 @@ init();
 createBubbles();
 setupSplash();
 function createBubbles(){
+  const container=document.getElementById('bubbles');
+  if(!container)return;
+  container.innerHTML='';
+  const isHoney=document.body.classList.contains('theme-honey');
+  const count=isHoney?16:12;
+  for(let i=0;i<count;i++){
+    const b=document.createElement('div');
+    b.className='bubble';
+    const size=isHoney?(30+Math.random()*50):(20+Math.random()*60);
+    b.style.width=size+'px';
+    b.style.height=size+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(isHoney?(30+Math.random()*30):(15+Math.random()*25))+'s';
+    b.style.animationDelay=(Math.random()*(isHoney?30:20))+'s';
+    container.appendChild(b);
+  }
+}
+function setupSplash(){
+  const overlay=document.getElementById('splashOverlay');
+  if(!overlay)return;
+  let lastSplash=0;
+  function triggerSplash(){
+    const now=Date.now();
+    if(now-lastSplash<2000)return;
+    if(!document.body.classList.contains('theme-honey'))return;
+    lastSplash=now;
+    overlay.classList.add('active');
+    const bubbles=document.querySelectorAll('.bubble');
+    bubbles.forEach(b=>{if(Math.random()<0.3){b.classList.add('splash');setTimeout(()=>b.classList.remove('splash'),600);}});
+    setTimeout(()=>overlay.classList.remove('active'),1000);
+  }
+  document.addEventListener('touchstart',triggerSplash,{passive:true});
+  document.addEventListener('click',triggerSplash,{passive:true});
+  if(window.DeviceMotionEvent){
+    let lastX=0,lastY=0;
+    window.addEventListener('devicemotion',e=>{
+      if(!e.accelerationIncludingGravity)return;
+      const x=e.accelerationIncludingGravity.x||0;
+      const y=e.accelerationIncludingGravity.y||0;
+      if(Math.abs(x-lastX)+Math.abs(y-lastY)>15){triggerSplash();lastX=x;lastY=y;}
+    },{passive:true});
+  }
+}
+</script>
   const container=document.getElementById('bubbles');
   if(!container)return;
   container.innerHTML='';
