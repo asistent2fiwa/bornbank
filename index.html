@@ -63,7 +63,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <div id="home">
 <div class="flex justify-between items-center mb-6">
 <span class="text-2xl font-bold">🐷 Børnebank</span>
-<button onclick="showShareModal()" class="text-green-400 text-sm">Del ↗</button>
+<button onclick="showMenu()" class="text-gray-400 text-2xl px-2">☰</button>
 </div>
 
 <div id="familyInfo" class="text-xs text-gray-500 mb-4 hidden">
@@ -118,7 +118,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <div class="text-xl font-bold">🐷 Børnebank</div>
 <div>
 <button onclick="showHome()" class="text-gray-400 text-sm">← Tilbage</button>
-<button onclick="showChildQR()" class="text-green-400 text-sm ml-3">Del ↗</button>
+<button onclick="showMenu()" class="text-gray-400 text-2xl px-2">☰</button>
 </div>
 </div>
 
@@ -186,6 +186,27 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 </div>
 </div>
 
+<!-- Menu Modal -->
+<div id="menuModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
+<h2 class="text-xl font-bold mb-4">Menu</h2>
+<div id="menuOptions"></div>
+<button onclick="hideMenu()" class="w-full bg-gray-600 py-3 rounded-lg font-semibold mt-4">Luk</button>
+</div>
+</div>
+
+<!-- Delete Family Confirm Modal -->
+<div id="deleteFamilyModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+<div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
+<h2 class="text-xl font-bold mb-4 text-red-400">Slet familie?</h2>
+<p class="text-gray-400 mb-6">Dette sletter alle data BÅDE på telefonen OG i cloud. Handlingen kan ikke fortrydes!</p>
+<div class="flex gap-3">
+<button onclick="hideDeleteFamilyModal()" class="flex-1 bg-gray-600 py-3 rounded-lg font-semibold">Fortryd</button>
+<button onclick="confirmDeleteFamily()" class="flex-1 bg-red-600 py-3 rounded-lg font-bold">Slet alt</button>
+</div>
+</div>
+</div>
+
 <div id="shareModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4">
 <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
 <h2 class="text-xl font-bold mb-4">Del til partner</h2>
@@ -225,6 +246,7 @@ body{background:#0f0f14;color:#fff;min-height:100vh}
 <div id="childView" class="hidden text-center">
 <div class="flex justify-between items-center mb-4">
 <span class="text-xl font-bold">🐷 Børnebank</span>
+<button onclick="showMenu()" class="text-gray-400 text-2xl px-2">☰</button>
 </div>
 <div class="text-6xl mb-2 cursor-pointer" id="childPieceDisplay" onclick="togglePieceMenu()">🎯</div>
 <h1 class="text-3xl font-bold mb-2"><span id="childViewName"></span></h1>
@@ -785,6 +807,62 @@ function deleteChild(){
   showHome();
 }
 
+function showMenu(){
+  const menuOptions = document.getElementById('menuOptions');
+  let html = '';
+  
+  if (isReadOnly) {
+    // Child view menu
+    html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
+    html += '<button onclick="hideMenu();showPieceMenu();" class="w-full bg-gray-700 text-white py-3 rounded-lg mb-2">Skift brik</button>';
+  } else {
+    // Parent view menu
+    html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
+    html += '<button onclick="hideMenu();showDeleteFamilyModal();" class="w-full bg-red-600 text-white py-3 rounded-lg mb-2">Slet familie</button>';
+  }
+  
+  menuOptions.innerHTML = html;
+  document.getElementById('menuModal').classList.remove('hidden');
+}
+
+function hideMenu(){
+  document.getElementById('menuModal').classList.add('hidden');
+}
+
+function showDeleteFamilyModal(){
+  hideMenu();
+  document.getElementById('deleteFamilyModal').classList.remove('hidden');
+}
+
+function hideDeleteFamilyModal(){
+  document.getElementById('deleteFamilyModal').classList.add('hidden');
+}
+
+function confirmDeleteFamily(){
+  // Delete from Supabase first
+  fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId, {
+    method: 'DELETE',
+    headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY}
+  }).then(() => {
+    // Clear local data
+    localStorage.removeItem('bornbank_family');
+    localStorage.removeItem('bornbank_parent');
+    localStorage.removeItem('bornbank_' + familyId);
+    familyId = '';
+    parentToken = '';
+    children = [];
+    interest = {enabled:true,rate:2,freq:3,lastInterest:''};
+    hideDeleteFamilyModal();
+    document.getElementById('home').classList.add('hidden');
+    document.getElementById('childDetail').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    showToast('Familie slettet', 'success');
+  }).catch(e => {
+    console.log('Delete error:', e);
+    showToast('Kunne ikke slette fra cloud', 'error');
+  });
+}
+
 function showShareModal(){
   document.getElementById('shareModal').classList.remove('hidden');
   document.getElementById('shareCode').textContent = parentToken;
@@ -851,6 +929,19 @@ function copyChildLink(){
   const childUrl = window.location.origin + window.location.pathname + '?f=' + familyId + '&c=' + c.id;
   navigator.clipboard.writeText(childUrl);
   alert('Link kopieret!');
+}
+
+function showPieceMenu(){
+  const menu = document.getElementById('pieceMenu');
+  menu.innerHTML = '';
+  MONOPOLY_PIECES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'text-3xl p-2 hover:bg-gray-700 rounded';
+    btn.textContent = p;
+    btn.onclick = () => { selectPiece(p); hideMenu(); };
+    menu.appendChild(btn);
+  });
+  menu.classList.remove('hidden');
 }
 
 function togglePieceMenu(){
