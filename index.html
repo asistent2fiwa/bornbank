@@ -75,7 +75,7 @@ body.theme-honey{background:linear-gradient(180deg,#F5C842 0%,#E6A800 30%,#CC880
 body.theme-honey .bg-gray-800{background:rgba(80,40,0,0.6)}
 body.theme-honey .bg-gray-700{background:rgba(80,40,0,0.5)}
 body.theme-honey .bg-gray-900{background:rgba(0,0,0,0.3)}
-body.theme-honey .text-gray-400{color:#7A5200}
+body.theme-honey .text-gray-400{color:#5A3000}
 body.theme-honey .text-white,body.theme-honey .text-gray-300,body.theme-honey .text-gray-100{color:#3D2000}
 body.theme-honey .bg-green-500{background:#1B5E20}
 body.theme-honey .bg-red-500{background:#B71C1C}
@@ -83,7 +83,7 @@ body.theme-honey .bg-blue-500{background:#0D47A1}
 body.theme-honey .bg-yellow-400,body.theme-honey .bg-orange-500{background:#E65100}
 body.theme-honey .border-gray-300{border-color:rgba(255,255,255,0.3)}
 body.theme-honey .text-green-400{color:#2E7D32}
-body.theme-honey .text-gray-500{color:#6B4510}
+body.theme-honey .text-gray-500{color:#5A3000}
 
 /* Sun rays for honey theme */
 body.theme-honey .bubbles-container{background:radial-gradient(ellipse at 50% -10%, rgba(255,255,255,0.5) 0%, rgba(255,200,100,0.2) 30%, transparent 70%)}
@@ -99,6 +99,11 @@ body.theme-honey .bubble{
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+
+/* Page transitions */
+#home,#childDetail,#setupScreen,#childView{transition:opacity 0.3s ease,transform 0.3s ease}
+.page-hidden{opacity:0;transform:scale(0.98);pointer-events:none}
+.page-visible{opacity:1;transform:scale(1)}
 
 /* Animated floating bubbles */
 .bubbles-container{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:0}
@@ -226,7 +231,7 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<p><span id="detailPiece" class="text-4xl"></span> <span id="detailName" class="text-2xl font-bold"></span> <span id="detailAge" class="text-gray-400 text-lg"></span></p>
+<p><span id="detailPiece" class="text-4xl"></span> <span id="detailName" class="text-3xl font-bold"></span> <span id="detailAge" class="text-gray-400 text-lg"></span></p>
 <p class="text-5xl font-bold text-green-400 mt-2"><span id="detailSaldo">0</span> kr</p>
 <p class="text-sm text-gray-500 mt-2">Næste lommepenge: <span id="nextFriday"></span></p>
 </div>
@@ -816,18 +821,28 @@ function saveChild(){
 }
 
 function showHome(){
-  document.getElementById('home').classList.remove('hidden');
-  document.getElementById('childDetail').classList.add('hidden');
+  const home=document.getElementById('home'),detail=document.getElementById('childDetail');
+  detail.classList.add('page-hidden');
+  setTimeout(()=>{
+    detail.classList.add('hidden');
+    home.classList.remove('hidden');
+    home.classList.add('page-visible');
+  },150);
   document.getElementById('setupScreen').classList.add('hidden');
   currentChild = null;
   render();
 }
 
 function openChild(i){
+  const home=document.getElementById('home'),detail=document.getElementById('childDetail');
+  home.classList.add('page-hidden');
+  setTimeout(()=>{
+    home.classList.add('hidden');
+    detail.classList.remove('hidden');
+    detail.classList.add('page-visible');
+  },150);
   currentChild = i;
   const c = children[i];
-  document.getElementById('home').classList.add('hidden');
-  document.getElementById('childDetail').classList.remove('hidden');
   document.getElementById('detailPiece').textContent = c.piece || '🎯';
   document.getElementById('detailName').textContent = c.name;
   document.getElementById('detailAge').textContent = c.age + ' år';
