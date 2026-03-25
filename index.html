@@ -106,7 +106,7 @@ body.theme-honey .bubble{
 
 /* Animated floating bubbles */
 .bubbles-container{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:0}
-.bubble{position:absolute;bottom:-100px;border-radius:50%;opacity:0.6;animation:float-up 25s linear infinite}
+.bubble{position:absolute;bottom:-100px;border-radius:50%;opacity:0.6;animation-name:float-up;animation-timing-function:linear;animation-iteration-count:infinite}
 @keyframes float-up{0%{transform:translateY(0) scale(1);opacity:0.6}50%{opacity:0.4}100%{transform:translateY(-110vh) scale(0.8);opacity:0}}
 
 /* Golden bubbles for light/soft themes */
