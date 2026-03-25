@@ -72,16 +72,16 @@ body.theme-soft .border-gray-300{border-color:#d1cdc6}
 
 /* Honey theme - amber liquid with sun rays */
 body.theme-honey{background:linear-gradient(180deg,#F5C842 0%,#E6A800 30%,#CC8800 70%,#996600 100%);color:#3D2000}
-body.theme-honey .bg-gray-800{background:rgba(80,40,0,0.6)}
-body.theme-honey .bg-gray-700{background:rgba(80,40,0,0.5)}
-body.theme-honey .bg-gray-900{background:rgba(0,0,0,0.3)}
+body.theme-honey .bg-gray-800{background:rgba(255,240,200,0.75)}
+body.theme-honey .bg-gray-700{background:rgba(255,235,190,0.7)}
+body.theme-honey .bg-gray-900{background:rgba(200,160,100,0.5)}
 body.theme-honey .text-gray-400{color:#5A3000}
 body.theme-honey .text-white,body.theme-honey .text-gray-300,body.theme-honey .text-gray-100{color:#3D2000}
 body.theme-honey .bg-green-500{background:#1B5E20}
 body.theme-honey .bg-red-500{background:#B71C1C}
 body.theme-honey .bg-blue-500{background:#0D47A1}
 body.theme-honey .bg-yellow-400,body.theme-honey .bg-orange-500{background:#E65100}
-body.theme-honey .border-gray-300{border-color:rgba(255,255,255,0.3)}
+body.theme-honey .border-gray-300{border-color:rgba(255,255,255,0.5)}
 body.theme-honey .text-green-400{color:#2E7D32}
 body.theme-honey .text-gray-500{color:#5A3000}
 
@@ -92,7 +92,7 @@ body.theme-honey .bubbles-container{background:radial-gradient(ellipse at 50% -1
 body.theme-honey .bubble{
   background:radial-gradient(circle at 35% 35%, rgba(255,255,200,0.9), rgba(255,180,50,0.6) 50%, rgba(230,120,20,0.4));
   box-shadow:0 0 20px rgba(255,180,50,0.5), 0 0 40px rgba(255,150,0,0.3), inset 0 -5px 20px rgba(255,255,255,0.3), inset 0 5px 15px rgba(255,200,100,0.4);
-  animation-duration:25s!important;
+  animation-duration:20s,35s,45s,55s,30s,40s,50s,25s,60s,33s,42s,55s,28s,38s,48s,22s!important;
   backdrop-filter:blur(2px);
 }
 
@@ -101,8 +101,8 @@ body.theme-honey .bubble{
 .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
 
 /* Page transitions */
-#home,#childDetail,#setupScreen,#childView{transition:opacity 0.3s ease,transform 0.3s ease}
-.page-hidden{opacity:0;transform:scale(0.98);pointer-events:none}
+#home,#childDetail,#setupScreen,#childView{transition:opacity 0.5s ease,transform 0.5s ease}
+.page-hidden{opacity:0;transform:scale(0.97);pointer-events:none}
 .page-visible{opacity:1;transform:scale(1)}
 
 /* Animated floating bubbles */
@@ -165,8 +165,8 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 <div id="home">
 <div class="flex justify-between items-center mb-6">
 <div class="flex items-center gap-2">
-<span class="text-3xl">🐷</span>
-<span class="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent">Børnebank</span>
+<span class="text-4xl">🐷</span>
+<span class="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent">Børnebank</span>
 </div>
 <button onclick="showMenu()" class="text-gray-400 text-2xl px-2">☰</button>
 </div>
@@ -231,7 +231,7 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-6 mb-4 text-center">
-<p><span id="detailPiece" class="text-4xl"></span> <span id="detailName" class="text-3xl font-bold"></span> <span id="detailAge" class="text-gray-400 text-lg"></span></p>
+<p><span id="detailPiece" class="text-5xl"></span> <span id="detailName" class="text-4xl font-bold"></span> <span id="detailAge" class="text-gray-400 text-xl"></span></p>
 <p class="text-5xl font-bold text-green-400 mt-2"><span id="detailSaldo">0</span> kr</p>
 <p class="text-sm text-gray-500 mt-2">Næste lommepenge: <span id="nextFriday"></span></p>
 </div>
@@ -357,7 +357,7 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 <button onclick="showMenu()" class="text-gray-400 text-2xl px-2">☰</button>
 </div>
 <div class="text-6xl mb-2 cursor-pointer" id="childPieceDisplay" onclick="togglePieceMenu()">🎯</div>
-<h1 class="text-3xl font-bold mb-2"><span id="childViewName"></span></h1>
+<h1 class="text-4xl font-bold mb-2"><span id="childViewName"></span></h1>
 <p class="text-gray-400 mb-6">Kun til visning</p>
 
 <div id="pieceMenu" class="hidden bg-gray-800 rounded-xl p-4 mb-4 flex justify-center gap-2 flex-wrap"></div>
@@ -827,7 +827,7 @@ function showHome(){
     detail.classList.add('hidden');
     home.classList.remove('hidden');
     home.classList.add('page-visible');
-  },150);
+  },500);
   document.getElementById('setupScreen').classList.add('hidden');
   currentChild = null;
   render();
@@ -840,7 +840,7 @@ function openChild(i){
     home.classList.add('hidden');
     detail.classList.remove('hidden');
     detail.classList.add('page-visible');
-  },150);
+  },500);
   currentChild = i;
   const c = children[i];
   document.getElementById('detailPiece').textContent = c.piece || '🎯';
