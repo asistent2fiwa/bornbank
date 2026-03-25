@@ -953,7 +953,6 @@ function toggleTheme(){
   localStorage.setItem('bornbank_theme', next);
   createBubbles();
   updateThemeButton();
-  showToast(themeNames[next], 'success');
 }
 
 function updateThemeButton(){
@@ -1208,59 +1207,6 @@ function setupSplash(){
       const x=e.accelerationIncludingGravity.x||0;
       const y=e.accelerationIncludingGravity.y||0;
       if(Math.abs(x-lastX)+Math.abs(y-lastY)>15){triggerSplash();lastX=x;lastY=y;}
-    },{passive:true});
-  }
-}
-</script>
-  const container=document.getElementById('bubbles');
-  if(!container)return;
-  container.innerHTML='';
-  const isHoney=document.body.classList.contains('theme-honey');
-  const count=isHoney?16:12;
-  for(let i=0;i<count;i++){
-    const b=document.createElement('div');
-    b.className='bubble';
-    const size=isHoney?(30+Math.random()*50):(20+Math.random()*60);
-    b.style.width=size+'px';
-    b.style.height=size+'px';
-    b.style.left=Math.random()*100+'%';
-    b.style.animationDuration=(isHoney?(30+Math.random()*30):(15+Math.random()*25))+'s';
-    b.style.animationDelay=(Math.random()*(isHoney?30:20))+'s';
-    container.appendChild(b);
-  }
-}
-function setupSplash(){
-  const overlay=document.getElementById('splashOverlay');
-  if(!overlay)return;
-  let lastSplash=0;
-  function triggerSplash(){
-    const now=Date.now();
-    if(now-lastSplash<2000)return;
-    if(!document.body.classList.contains('theme-honey'))return;
-    lastSplash=now;
-    overlay.classList.add('active');
-    // Random bubble splash
-    const bubbles=document.querySelectorAll('.bubble');
-    bubbles.forEach(b=>{
-      if(Math.random()<0.3){
-        b.classList.add('splash');
-        setTimeout(()=>b.classList.remove('splash'),600);
-      }
-    });
-    setTimeout(()=>overlay.classList.remove('active'),1000);
-  }
-  document.addEventListener('touchstart',triggerSplash,{passive:true});
-  document.addEventListener('click',triggerSplash,{passive:true});
-  if(window.DeviceMotionEvent){
-    let lastX=0,lastY=0;
-    window.addEventListener('devicemotion',e=>{
-      if(!e.accelerationIncludingGravity)return;
-      const x=e.accelerationIncludingGravity.x||0;
-      const y=e.accelerationIncludingGravity.y||0;
-      if(Math.abs(x-lastX)+Math.abs(y-lastY)>15){
-        triggerSplash();
-        lastX=x;lastY=y;
-      }
     },{passive:true});
   }
 }
