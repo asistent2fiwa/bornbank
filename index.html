@@ -381,6 +381,21 @@ async function loadData(){
   // Try Supabase 
   const supabaseData = await syncFromSupabase();
   
+  // If family doesn't exist in Supabase but we have local data, ask user
+  if (!supabaseData && localData) {
+    if (confirm('Familien findes ikke længere i cloud. Vil du genskabe den med lokale data?')) {
+      // Will recreate on next save
+    } else {
+      // Reset to setup
+      localStorage.removeItem('bornbank_family');
+      localStorage.removeItem('bornbank_parent');
+      localStorage.removeItem('bornbank_' + familyId);
+      familyId = '';
+      location.reload();
+      return;
+    }
+  }
+  
   // Merge data - prefer newer
   if (supabaseData) {
     if (!localData || (supabaseData._timestamp && supabaseData._timestamp > (localData._timestamp || 0))) {
