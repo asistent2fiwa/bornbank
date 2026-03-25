@@ -73,9 +73,24 @@ body.theme-soft .border-gray-300{border-color:#d1cdc6}
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+
+/* Animated floating bubbles */
+.bubbles-container{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:0}
+.bubble{position:absolute;bottom:-100px;border-radius:50%;opacity:0.6;animation:float-up linear infinite}
+@keyframes float-up{0%{transform:translateY(0) scale(1);opacity:0.6}50%{opacity:0.4}100%{transform:translateY(-110vh) scale(0.8);opacity:0}}
+
+/* Golden bubbles for light/soft themes */
+body.theme-light .bubble,body.theme-soft .bubble{background:radial-gradient(circle at 30% 30%, rgba(251,191,36,0.8), rgba(251,191,36,0.4))}
+
+/* Purple bubbles for dark/blue/nature themes */
+body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{background:radial-gradient(circle at 30% 30%, rgba(196,181,253,0.8), rgba(167,139,250,0.4))}
+
+/* Ensure content is above bubbles */
+#home,#childDetail,#setupScreen,.bg-gray-800,.bg-gray-700,.bg-gray-900,.rounded-2xl,.rounded-xl,.rounded-lg{position:relative;z-index:1}
 </style>
 </head>
 <body class="p-4">
+<div id="bubbles" class="bubbles-container"></div>
 
 <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50"></div>
 
@@ -884,8 +899,13 @@ function showMenu(){
     // Child view menu
     html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
     html += '<button onclick="hideMenu();showPieceMenu();" class="w-full bg-gray-700 text-white py-3 rounded-lg mb-2">Skift brik</button>';
+  } else if (currentChild !== null) {
+    // Parent view - child detail menu
+    html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
+    html += '<button onclick="hideMenu();confirmDelete();" class="w-full bg-red-600 text-white py-3 rounded-lg mb-2">Slet barn</button>';
+    html += '<button onclick="hideMenu();showDeleteFamilyModal();" class="w-full bg-red-800 text-white py-3 rounded-lg mb-2">Slet familie</button>';
   } else {
-    // Parent view menu
+    // Parent view - home menu
     html += '<button onclick="hideMenu();showShareModal();" class="w-full bg-blue-500 text-white py-3 rounded-lg mb-2">Del</button>';
     html += '<button onclick="hideMenu();showDeleteFamilyModal();" class="w-full bg-red-600 text-white py-3 rounded-lg mb-2">Slet familie</button>';
   }
@@ -1109,6 +1129,24 @@ if (viewFamily && viewChild){
 
 applyInterest();
 init();
+createBubbles();
+function createBubbles(){
+  const container=document.getElementById('bubbles');
+  if(!container)return;
+  container.innerHTML='';
+  const count=12;
+  for(let i=0;i<count;i++){
+    const b=document.createElement('div');
+    b.className='bubble';
+    const size=20+Math.random()*60;
+    b.style.width=size+'px';
+    b.style.height=size+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(15+Math.random()*25)+'s';
+    b.style.animationDelay=(Math.random()*20)+'s';
+    container.appendChild(b);
+  }
+}
 </script>
 </body>
 </html>
