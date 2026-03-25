@@ -54,6 +54,22 @@ body.theme-nature .text-white{color:#14532d}
 body.theme-nature .bg-green-500{background:#16a34a}
 body.theme-nature .bg-red-500{background:#dc2626}
 
+/* Soft theme - modern bank + learning platform */
+body.theme-soft{background:#faf8f5;color:#374151}
+body.theme-soft .bg-gray-800{background:#e8e4df}
+body.theme-soft .bg-gray-700{background:#ddd8d0}
+body.theme-soft .bg-gray-900{background:#c9c4bc}
+body.theme-soft .bg-gray-600{background:#b8b2a8}
+body.theme-soft .bg-gray-500{background:#9a948a}
+body.theme-soft .text-gray-400{color:#6b7280}
+body.theme-soft .text-gray-500{color:#4b5563}
+body.theme-soft .text-white,body.theme-soft .text-gray-300,body.theme-soft .text-gray-100{color:#374151}
+body.theme-soft .bg-blue-500{background:#0891b2} /* Ocean Blue */
+body.theme-soft .bg-green-500{background:#059669} /* Success */
+body.theme-soft .bg-red-500,body.theme-soft .bg-orange-500{background:#ea580c} /* Warning/Sunset Gold */
+body.theme-soft .bg-yellow-400{background:#d97706} /* Sunset Gold accent */
+body.theme-soft .border-gray-300{border-color:#d1cdc6}
+
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
@@ -878,8 +894,8 @@ function showMenu(){
   document.getElementById('menuModal').classList.remove('hidden');
 }
 
-const themes = ['light', 'dark', 'blue', 'nature'];
-const themeNames = {'light': '⚪️ Lys', 'dark': '⚫️ Mørk', 'blue': '🔵 Blå', 'nature': '🟢 Natur'};
+const themes = ['light', 'dark', 'soft', 'blue', 'nature'];
+const themeNames = {'light': '⚪️ Lys', 'dark': '⚫️ Mørk', 'soft': '🩵 Soft', 'blue': '🔵 Blå', 'nature': '🟢 Natur'};
 
 function toggleTheme(){
   const current = themes.find(t => document.body.classList.contains('theme-' + t)) || 'light';
