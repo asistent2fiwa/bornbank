@@ -71,32 +71,24 @@ body.theme-soft .bg-yellow-400{background:#d97706} /* Sunset Gold accent */
 body.theme-soft .border-gray-300{border-color:#d1cdc6}
 
 /* Honey theme - amber liquid with sun rays */
-body.theme-honey{background:linear-gradient(180deg,#F5C842 0%,#E6A800 30%,#CC8800 70%,#996600 100%);color:#4A3000}
-body.theme-honey .bg-gray-800{background:rgba(255,255,255,0.25)}
-body.theme-honey .bg-gray-700{background:rgba(255,255,255,0.2)}
-body.theme-honey .bg-gray-900{background:rgba(0,0,0,0.15)}
-body.theme-honey .text-gray-400{color:#7A5A00}
-body.theme-honey .text-white,body.theme-honey .text-gray-300,body.theme-honey .text-gray-100{color:#4A3000}
-body.theme-honey .bg-green-500{background:#2D7D32}
-body.theme-honey .bg-red-500{background:#C62828}
-body.theme-honey .bg-blue-500{background:#1565C0}
+body.theme-honey{background:linear-gradient(180deg,#F5C842 0%,#E6A800 30%,#CC8800 70%,#996600 100%);color:#3D2000}
+body.theme-honey .bg-gray-800{background:rgba(80,40,0,0.35)}
+body.theme-honey .bg-gray-700{background:rgba(80,40,0,0.25)}
+body.theme-honey .bg-gray-900{background:rgba(0,0,0,0.2)}
+body.theme-honey .text-gray-400{color:#5C3D00}
+body.theme-honey .text-white,body.theme-honey .text-gray-300,body.theme-honey .text-gray-100{color:#3D2000}
+body.theme-honey .bg-green-500{background:#1B5E20}
+body.theme-honey .bg-red-500{background:#B71C1C}
+body.theme-honey .bg-blue-500{background:#0D47A1}
 body.theme-honey .bg-yellow-400,body.theme-honey .bg-orange-500{background:#E65100}
 body.theme-honey .border-gray-300{border-color:rgba(255,255,255,0.3)}
+body.theme-honey .text-green-400{color:#2E7D32}
 
 /* Sun rays for honey theme */
 body.theme-honey .bubbles-container{background:radial-gradient(ellipse at 50% -20%, rgba(255,255,255,0.4) 0%, transparent 60%)}
 
 /* Honey bubbles - slower, amber colored */
 body.theme-honey .bubble{background:radial-gradient(circle at 30% 30%, rgba(255,235,150,0.9), rgba(255,180,50,0.5));animation-duration:25s!important}
-
-/* Honey splash effect */
-body.theme-honey .bubble.splash{animation:splash 0.6s ease-out}
-
-/* Splash wave overlay */
-.splash-overlay{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0;background:radial-gradient(ellipse at 50% 100%, rgba(255,235,150,0.5) 0%, transparent 70%);transition:opacity 0.3s}
-body.theme-honey .splash-overlay.active{opacity:1;animation:splash-wave 1s ease-out}
-
-@keyframes splash-wave{0%{transform:scaleY(0);opacity:1}100%{transform:scaleY(1);opacity:0}}
 
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
@@ -119,7 +111,6 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 </head>
 <body class="p-4">
 <div id="bubbles" class="bubbles-container"></div>
-<div id="splashOverlay" class="splash-overlay"></div>
 <div id="themeToggle" onclick="toggleTheme()" style="position:fixed;bottom:20px;right:20px;background:rgba(128,128,128,0.8);backdrop-filter:blur(8px);color:white;padding:10px 16px;border-radius:50px;font-size:20px;cursor:pointer;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:all 0.3s" title="Skift tema"></div>
 
 <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50"></div>
@@ -1165,7 +1156,6 @@ if (viewFamily && viewChild){
 applyInterest();
 init();
 createBubbles();
-setupSplash();
 function createBubbles(){
   const container=document.getElementById('bubbles');
   if(!container)return;
@@ -1182,32 +1172,6 @@ function createBubbles(){
     b.style.animationDuration=(isHoney?(30+Math.random()*30):(15+Math.random()*25))+'s';
     b.style.animationDelay=(Math.random()*(isHoney?30:20))+'s';
     container.appendChild(b);
-  }
-}
-function setupSplash(){
-  const overlay=document.getElementById('splashOverlay');
-  if(!overlay)return;
-  let lastSplash=0;
-  function triggerSplash(){
-    const now=Date.now();
-    if(now-lastSplash<2000)return;
-    if(!document.body.classList.contains('theme-honey'))return;
-    lastSplash=now;
-    overlay.classList.add('active');
-    const bubbles=document.querySelectorAll('.bubble');
-    bubbles.forEach(b=>{if(Math.random()<0.3){b.classList.add('splash');setTimeout(()=>b.classList.remove('splash'),600);}});
-    setTimeout(()=>overlay.classList.remove('active'),1000);
-  }
-  document.addEventListener('touchstart',triggerSplash,{passive:true});
-  document.addEventListener('click',triggerSplash,{passive:true});
-  if(window.DeviceMotionEvent){
-    let lastX=0,lastY=0;
-    window.addEventListener('devicemotion',e=>{
-      if(!e.accelerationIncludingGravity)return;
-      const x=e.accelerationIncludingGravity.x||0;
-      const y=e.accelerationIncludingGravity.y||0;
-      if(Math.abs(x-lastX)+Math.abs(y-lastY)>15){triggerSplash();lastX=x;lastY=y;}
-    },{passive:true});
   }
 }
 </script>
