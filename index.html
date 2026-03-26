@@ -643,12 +643,13 @@ function getNextInterestDate(freq){
   let dates = [];
   
   if (freq == 12) {
-    dates.push(new Date(year, 11, 31));
+    dates.push(new Date(year, 11, 1)); // Jan 1 next year = end of year
   } else if (freq == 3) {
-    dates.push(new Date(year, 2, 31));
-    dates.push(new Date(year, 5, 30));
-    dates.push(new Date(year, 8, 30));
-    dates.push(new Date(year, 11, 31));
+    // Use 1st of next month to avoid day-overflow issues with Feb-31 etc.
+    dates.push(new Date(year, 2, 1)); // Q1: April 1 (end of Q1 = March 31)
+    dates.push(new Date(year, 5, 1)); // Q2: July 1 (end of Q2 = June 30)
+    dates.push(new Date(year, 8, 1)); // Q3: Oct 1 (end of Q3 = Sept 30)
+    dates.push(new Date(year, 11, 1)); // Q4: Jan 1 next year (end of Q4 = Dec 31)
   } else {
     for (let m = month; m < 12; m++) {
       let lastDay = new Date(year, m + 1, 0).getDate();
@@ -660,8 +661,8 @@ function getNextInterestDate(freq){
     if (d > today) return d;
   }
   
-  if (freq == 12) return new Date(year + 1, 11, 31);
-  if (freq == 3) return new Date(year + 1, 2, 31);
+  if (freq == 12) return new Date(year + 1, 11, 1);
+  if (freq == 3) return new Date(year + 1, 2, 1);
   return new Date(year, month + 1, 1);
 }
 
