@@ -95,6 +95,29 @@ body.theme-honey .bubble{
   backdrop-filter:blur(2px);
 }
 
+/* Matrix theme - hacker/neon green on black */
+body.theme-matrix{background:#0a0a0a;color:#00ff41}
+body.theme-matrix .bg-gray-800{background:rgba(0,255,65,0.1)}
+body.theme-matrix .bg-gray-700{background:rgba(0,255,65,0.15)}
+body.theme-matrix .bg-gray-900{background:rgba(0,0,0,0.5)}
+body.theme-matrix .text-gray-400{color:#00cc33}
+body.theme-matrix .text-white,body.theme-matrix .text-gray-300,body.theme-matrix .text-gray-100{color:#00ff41}
+body.theme-matrix .bg-green-500{background:#00ff41;color:#000}
+body.theme-matrix .bg-red-500{background:#ff0040}
+body.theme-matrix .bg-blue-500{background:#0088ff}
+body.theme-matrix .bg-yellow-400,body.theme-matrix .bg-orange-500{background:#ffcc00;color:#000}
+body.theme-matrix .border-gray-300{border-color:rgba(0,255,65,0.3)}
+body.theme-matrix .text-green-400{color:#00ff41}
+body.theme-matrix .text-gray-500{color:#00cc33}
+body.theme-matrix .bg-gray-600{background:rgba(0,255,65,0.2)}
+
+/* Matrix bubbles - neon glowing green */
+body.theme-matrix .bubbles-container{background:#0a0a0a}
+body.theme-matrix .bubble{
+  background:radial-gradient(circle at 35% 35%, rgba(0,255,150,0.9), rgba(0,255,65,0.5) 60%, rgba(0,200,50,0.3));
+  box-shadow:0 0 15px rgba(0,255,65,0.8), 0 0 30px rgba(0,255,65,0.4), 0 0 45px rgba(0,255,65,0.2);
+}
+
 .btn{transition:all 0.2s}
 .btn:active{transform:scale(0.95)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
@@ -952,9 +975,9 @@ function showMenu(){
   document.getElementById('menuModal').classList.remove('hidden');
 }
 
-const themes = ['light', 'dark', 'soft', 'blue', 'nature', 'honey'];
+const themes = ['light', 'dark', 'soft', 'blue', 'nature', 'honey', 'matrix'];
 const themeNames = {'light': '⚪️ Lys', 'dark': '⚫️ Mørk', 'soft': '🩵 Soft', 'blue': '🔵 Blå', 'nature': '🟢 Natur', 'honey': '🍯 Honning'};
-const themeIcons = {'light': '☀️', 'dark': '🌙', 'soft': '🩵', 'blue': '🔵', 'nature': '🟢', 'honey': '🍯'};
+const themeIcons = {'light': '☀️', 'dark': '🌙', 'soft': '🩵', 'blue': '🔵', 'nature': '🟢', 'honey': '🍯', 'matrix': '💻'};
 
 function toggleTheme(){
   const current = themes.find(t => document.body.classList.contains('theme-' + t)) || 'light';
