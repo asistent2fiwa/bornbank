@@ -1033,13 +1033,26 @@ function confirmDeleteFamily(){
   });
 }
 
-function showShareModal(){
+async function showShareModal(){
   document.getElementById('shareModal').classList.remove('hidden');
-  document.getElementById('shareCode').textContent = parentToken;
-  const shareUrl = window.location.origin + window.location.pathname + '?p=' + parentToken;
-  document.getElementById('qrParent').innerHTML = '';
-  QRCode.toCanvas(document.createElement('canvas'), shareUrl, {width:150}, function(err, canvas) {
-    if(!err) document.getElementById('qrParent').appendChild(canvas);
+  // Validate family exists in Supabase, if not recreate it
+  const exists = await fetch(SUPABASE_URL + '/rest/v1/families?id=eq.' + familyId, {
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+  }).then(r=>r.json()).then(d=>d&&d.length>0).catch(()=>false);
+  if(!exists && familyId){
+    // Family was deleted in cloud, recreate with new credentials
+    familyId=generateId();
+    parentToken=familyId+'-'+generateId();
+    localStorage.setItem('bornbank_family',familyId);
+    localStorage.setItem('bornbank_parent',parentToken);
+    await createFamilyInSupabase();
+    showToast('Familie genskabt i cloud','success');
+  }
+  document.getElementById('shareCode').textContent=parentToken;
+  const shareUrl=window.location.origin+window.location.pathname+'?p='+parentToken;
+  document.getElementById('qrParent').innerHTML='';
+  QRCode.toCanvas(document.createElement('canvas'),shareUrl,{width:150},function(err,canvas){
+    if(!err)document.getElementById('qrParent').appendChild(canvas);
   });
 }
 
