@@ -84,6 +84,23 @@ Familie
         └── lastInterest
 ```
 
+## 🎨 Temaer
+
+Appen har 6 temaer som kan vælges via knappen i bunden af appen:
+
+| Tema | Baggrund | Tekst | Accent |
+|------|----------|-------|--------|
+| ☀️ **Lys (Light)** | `#f9fafb` | `#111827` | Grøn/Rød knapper |
+| 🌙 **Mørk (Dark)** | `#0f0f14` | `#ffffff` | Grøn/Rød knapper |
+| 🩵 **Blå (Blue)** | `#0c1929` | `#e0f2fe` | Grøn/Rød knapper |
+| 🟢 **Natur (Nature)** | `#f0fdf4` | `#14532d` | Grøn/Rød knapper |
+| 🧁 **Soft** | `#faf8f5` | `#374151` | Ocean/Sunset |
+| 🍯 **Honning (Honey)** | Gradient `#F5C842→#996600` | `#3D2000` | Transparente bobler |
+
+**Honning-temaet** har desuden en glas-effekt med halvtransparente bobler i baggrunden.
+
+---
+
 ## 🤝 Bidrag
 
 Feedback er velkommen! Tryk på griseikonet i appen for at sende ris eller ros.
