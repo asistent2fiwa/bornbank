@@ -101,6 +101,41 @@ Appen har 6 temaer som kan vælges via knappen i bunden af appen:
 
 ---
 
+## ❓ FAQ
+
+**Q: Hvordan opdaterer jeg appen på min telefon?**
+A: 
+- **iOS (PWA):** Gå til Indstillinger → Safari → Ryd data → Ryd cookies og data. Derefter åbn appen igen.
+- **Android (Chrome):** Åbn appen → menu (☰) → Indstillinger for denne side → Ryd cache
+- **Alternativt:** Slette appen fra hjemmeskærm og tilføj den igen via linket
+
+**Q: Hvordan fungerer QR-koden?**
+A: QR-koden indeholder et unikt link til din familie. Når en anden forælder scanner den, får de adgang til at se og redigere samme familie-data.
+
+**Q: Hvad betyder tema-valgene?**
+A: Appen har 6 temaer. Prøv dem alle ved at trykke på emoji-knappen i bunden. Honning-temaet har en særlig boble-effekt.
+
+**Q: Forsvinder mine data hvis jeg sletter appen?**
+A: Nej - data gemmes både lokalt på din telefon OG i Supabase cloud. Du kan genskabe data ved at åbne det delings-link du har fået.
+
+---
+
+## 🔧 Fejlfinding
+
+**App'en opdaterer ikke:**
+1. Prøv hard refresh: Hold refresh-knappen nede (mobil) eller Ctrl+Shift+R (desktop)
+2. Hvis det ikke virker: Ryd cache som beskrevet under FAQ
+3. Sidste udvej: Slet appen fra hjemmeskærm og tilføj igen
+
+**QR-koden virker ikke:**
+- Hvis din familie er blevet slettet og genskabt, opdateres QR-koden automatisk når du åbner Del-menuen
+
+**Tekniske problemer:**
+- Appen kræver internet-forbindelse ved første indlæsning (Tailwind CDN)
+- LocalStorage bruges til at gemme dit valg af tema og familie-id
+
+---
+
 ## 🤝 Bidrag
 
 Feedback er velkommen! Tryk på griseikonet i appen for at sende ris eller ros.
