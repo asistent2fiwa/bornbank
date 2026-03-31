@@ -11,7 +11,25 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐷</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script>
+// QRCode CDN fallback - prøver jsdelivr først, så unpkg
+(function() {
+  var cdn = [
+    'https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js',
+    'https://unpkg.com/qrcode@1.5.1/build/qrcode.min.js'
+  ];
+  var i = 0;
+  function tryLoad() {
+    if (i >= cdn.length) { console.warn('QRCode: Alle CDN forsøgt'); return; }
+    var s = document.createElement('script');
+    s.src = cdn[i++];
+    s.onload = function() { console.log('QRCode loaded from ' + cdn[i-1]); };
+    s.onerror = tryLoad;
+    document.head.appendChild(s);
+  }
+  tryLoad();
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 *{font-family:'Outfit',system-ui,sans-serif}
