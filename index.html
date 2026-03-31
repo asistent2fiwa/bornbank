@@ -256,6 +256,7 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 <p><span id="detailPiece" class="text-5xl"></span> <span id="detailName" class="text-4xl font-bold"></span> <span id="detailAge" class="text-gray-400 text-xl"></span></p>
 <p class="text-5xl font-bold text-green-400 mt-2"><span id="detailSaldo">0</span> kr</p>
 <p class="text-sm text-gray-500 mt-2">Næste lommepenge: <span id="nextFriday"></span></p>
+<button onclick="showChildQR()" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">📱 Vis QR til barn</button>
 </div>
 
 <div class="bg-gray-800 rounded-2xl p-4 mb-4">
@@ -697,6 +698,31 @@ function updateNextInterestDisplay(){
   const nextDate = getNextInterestDate(interest.freq);
   const freqText = interest.freq == 12 ? 'år' : (interest.freq == 3 ? 'kvartal' : 'måned');
   document.getElementById('nextInterestDate').textContent = 'Næste rente: ' + nextDate.toLocaleDateString('da-DK') + ' (' + interest.rate + '% ' + freqText + ')';
+}
+
+function applyAllowance(){
+  // Credit weekly allowance every Friday at 3pm
+  const now=new Date();
+  const day=now.getDay(); // 0=Sun, 5=Fri
+  const hours=now.getHours();
+  if(day!==5||hours<15)return; // Only Friday after 3pm
+  const todayStr=now.toISOString().split('T')[0];
+  const lastAllowance=localStorage.getItem('bornbank_lastAllowance')||'';
+  if(lastAllowance===todayStr)return; // Already credited today
+  children.forEach(c=>{
+    if(c.allowance>0){
+      c.saldo+=c.allowance;
+      c.transactions.unshift({
+        id:generateId(),
+        date:new Date().toISOString(),
+        timestamp:Date.now(),
+        amount:c.allowance,
+        desc:'Lommepenge'
+      });
+    }
+  });
+  localStorage.setItem('bornbank_lastAllowance',todayStr);
+  saveData();
 }
 
 function applyInterest(){
@@ -1209,6 +1235,7 @@ if (viewFamily && viewChild){
   }, 30000);
 }
 
+applyAllowance();
 applyInterest();
 init();
 createBubbles();
