@@ -2,6 +2,9 @@
 <html lang="da">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0f0f14">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -600,10 +603,14 @@ async function loadData(){
       lastSyncTime = data._timestamp;
       localStorage.setItem('bornbank_' + familyId, JSON.stringify({children, interest, _timestamp: lastSyncTime}));
       render();
+      applyAllowance();
+      applyInterest();
     }
   }, 3000);
   render();
   hideLoader();
+  applyAllowance();
+  applyInterest();
 }
 
 function saveData(){
@@ -1253,9 +1260,7 @@ if (viewFamily && viewChild){
   }, 30000);
 }
 
-applyAllowance();
-applyInterest();
-init();
+// applyAllowance() and applyInterest() are now called INSIDE init() after children are loaded
 createBubbles();
 function createBubbles(){
   const container=document.getElementById('bubbles');
