@@ -435,17 +435,17 @@ let parentToken = localStorage.getItem('bornbank_parent') || '';
 // Supabase config
 const SUPABASE_URL = 'https://shbthjbunfcotbfbixxe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYnRoamJ1bmZjb3RiZmJpeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NTI2MjcsImV4cCI6MjA4OTUyODYyN30.29PvPQIejTyCl-ubkgknY4pm0Of3ocIq-qWIhpk4c4Y';
-const APP_VERSION = '2026-04-04-2'; // Cache busting - ændre denne for at tvinge opdatering
+const APP_VERSION = '2026-04-04-3'; // Cache busting - ændre denne for at tvinge opdatering
 let lastSyncTime = 0;
 
 // Check for updates
 const savedVersion = localStorage.getItem('bornbank_version');
 if (savedVersion !== APP_VERSION) {
-  localStorage.setItem('bornbank_version', APP_VERSION);
-  // First run of new version - clear cache and reload
   if (savedVersion !== null) {
-    showToast('Opdatering! Luk appen og åbn igen.', 'success');
+    // Not first run - show update message
+    showToast('NY VERSION! Luk appen og åbn igen for at opdatere.', 'success');
   }
+  localStorage.setItem('bornbank_version', APP_VERSION);
 }
 
 async function syncToSupabase() {
