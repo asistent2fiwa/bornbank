@@ -426,6 +426,13 @@ const urlParams = new URLSearchParams(window.location.search);
 const viewFamily = urlParams.get('f');
 const viewChild = urlParams.get('c');
 const parentCode = urlParams.get('p');
+const debugMode = urlParams.get('debug');
+
+// Debug: Add ?debug=allowance to manually trigger allowance
+if (debugMode === 'allowance') {
+  console.log('DEBUG MODE: Forcing allowance credit');
+  window.forceAllowance = true;
+}
 
 let children = [];
 let interest = {enabled:true,rate:2,freq:3,lastInterest:""};
@@ -741,10 +748,14 @@ function applyAllowance(){
   const now=new Date();
   const day=now.getDay(); // 0=Sun, 5=Fri
   const hours=now.getHours();
-  if(day!==5||hours<15)return; // Only Friday after 3pm
+  
+  // DEBUG MODE: Allow manual trigger with ?debug=allowance
+  const isDebug = window.forceAllowance === true;
+  
+  if(!isDebug && (day!==5 || hours<15))return; // Only Friday after 3pm (or debug)
   const todayStr=now.toISOString().split('T')[0];
   const lastAllowance=localStorage.getItem('bornbank_lastAllowance')||'';
-  if(lastAllowance===todayStr)return; // Already credited today
+  if(!isDebug && lastAllowance===todayStr)return; // Already credited today (skip in debug too)
   children.forEach(c=>{
     if(c.allowance>0){
       c.saldo+=c.allowance;
