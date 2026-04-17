@@ -164,6 +164,9 @@ body.theme-dark .bubble,body.theme-blue .bubble,body.theme-nature .bubble{backgr
 </style>
 </head>
 <body class="p-4">
+<div id="updateBanner" class="hidden fixed top-0 left-0 right-0 bg-yellow-400 text-black text-center py-2 px-4 z-[200] font-bold">
+  <span id="updateText">Ny version! Tryk for at opdatere.</span>
+</div>
 <div id="bubbles" class="bubbles-container"></div>
 <div id="themeToggle" onclick="toggleTheme()" style="position:fixed;bottom:20px;right:20px;background:rgba(128,128,128,0.8);backdrop-filter:blur(8px);color:white;padding:10px 16px;border-radius:50px;font-size:20px;cursor:pointer;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:all 0.3s" title="Skift tema"></div>
 
@@ -532,7 +535,26 @@ let shownTransIds = new Set();
 const POS_OPTS = ['Pligter','Gave','Andet'];
 const NEG_OPTS = ['Tøj','Underholdning','Andet'];
 
+const APP_VERSION='2.1.4'; // Update this to trigger update banner
+
+function checkForUpdate(){
+  const savedVer=localStorage.getItem('bornbank_version');
+  if(savedVer!==APP_VERSION){
+    const banner=document.getElementById('updateBanner');
+    if(banner){
+      banner.classList.remove('hidden');
+      banner.onclick=()=>{
+        localStorage.setItem('bornbank_version',APP_VERSION);
+        window.location.reload();
+      };
+    }
+    localStorage.setItem('bornbank_version',APP_VERSION);
+  }
+}
+
 async function init(){
+  checkForUpdate();
+  
   // Load theme - default to light if not set
   const savedTheme = localStorage.getItem('bornbank_theme') || 'light';
   document.body.classList.add('theme-' + savedTheme);
